@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/hello/',views.hello,name='hello'),
     # path('',views.home,name='home'),
     path('api/get_question/',views.get_question,name='get_question'),
-    path('api/get_movies/',views.get_movies,name='get_movies'),
+    path('api/get_popular_movies/',views.get_popular_movies,name='get_popular_movies'),
+    path('api/get_movie_by_id/',views.get_movie_by_id,name='get_movies'),
     path('api/post_answer/',views.post_answer,name='post_answer'),
 ]

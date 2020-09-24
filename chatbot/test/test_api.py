@@ -21,9 +21,7 @@ def test_post1():
 
 def get_top_n_popular_movie():
     top_n=10
-    r = requests.post("http://127.0.0.1:8000/api/post_answer/", data=data)
-    # 
-    print(r.json()['nextQuestionString'])
+    pass
 
 
 if __name__ == '__main__':

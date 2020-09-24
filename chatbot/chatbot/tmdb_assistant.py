@@ -3,7 +3,20 @@ import urllib3, requests, json
 class TMDB_assistant():
     
     def __init__(self, api_key="02834833a9dfe29dc2c55eb707c5a73c", language="en-US"):
+        print("TMDB_assistant created!")
         self.api_key = api_key
+        self.language = language
+        # genres_list: A dict, with two item: id and name, e.g. {"id": 35 "name": "Comedy"}
+        self.genres_list = self.__get_all_genres()   
+
+    # Get the list of official genres for movies
+    def __get_all_genres(self):
+        url = "https://api.themoviedb.org/3/genre/movie/list?api_key="+self.api_key+ "&language="+ self.language
+        r = requests.get(url)
+        json_data = r.json()
+        return json_data.get('genres')
+    
+    def set_language(self, language):
         self.language = language
 
     # Given a movie json_object, return it's original_title link as str
@@ -11,7 +24,6 @@ class TMDB_assistant():
         result = json_object.get("original_title")
         if result==None:
             print("Error in get_movie_title: original_title doesn't exist!")
-            return None
         return result
         
     # Given a movie json_object, return it's homepage link as str
@@ -19,7 +31,6 @@ class TMDB_assistant():
         result = json_object.get("homepage")
         if result==None:
             print("Error in get_movie_homepage: homepage doesn't exist!")
-            return None
         return result
     
     # Given a movie json_object, return it's decription link as str
@@ -27,27 +38,24 @@ class TMDB_assistant():
         result = json_object.get("overview")
         if result==None:
             print("Error in get_movie_overview: overview doesn't exist!")
-            return None
         return result
 
     def get_movie_avatar_link(self, json_object):
         result = json_object.get("poster_path")
         if result==None:
             print("Error in get_movie_avatar_link: poster_path doesn't exist!")
-            return None
         path = "https://image.tmdb.org/t/p/w220_and_h330_face/" + result
         # Example: https://image.tmdb.org/t/p/w220_and_h330_face/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg
         return (path)
 
     def get_movie_trailer_link(self, json_object):
-        movie_id = self.get_id_by_movie(json_object)
+        movie_id = self.get_movie_id(json_object)
         url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language=en-US"
         r = requests.get(url)
         json_data = r.json()
         key = json_data.get("results")[0].get("key")
         if key==None:
             print("Error in get_movie_trailer_link: key trailer_link doesn't exist!")
-            return None
         # root_path = "https://www.themoviedb.org/movie/"
         # movie_title = self.get_movie_title(json_object)
         # movie_title = movie_title.lower().strip().replace(" ", "-")
@@ -60,8 +68,17 @@ class TMDB_assistant():
         # https://www.youtube.com/watch?v=aETz_dRDEys&feature=emb_title
         return (path)
     
-    def get_id_by_movie(self, json_object):
-        return int(json_object["id"])
+    def get_movie_id(self, json_object):
+        result = json_object.get("id")
+        if result==None:
+            print("Error in get_id_by_movie: id doesn't exist!")
+        return result
+
+    def is_adult_movie(self, json_object):
+        result = json_object.get("adult")
+        if result==None:
+            print("Error in is_adult_movie: adult doesn't exist!")
+        return result
 
     # ------------------------------------API call ---------------------
     def get_movie_by_id(self, movie_id:int):
@@ -75,6 +92,24 @@ class TMDB_assistant():
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
+
+    def get_similar_movies(self, movie_id:int):
+        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/recommendations?api_key="+self.api_key+"&language=en-US&page=1"
+        r = requests.get(query_url)
+        json_data = r.json()
+        return json_data
+    
+    def discover_movies(self, sort_by="popularity.desc"):
+        """Discover
+            Argument:
+                language: str, default "en-US"
+                sort_by: str, choose one, [popularity.asc, popularity.desc, release_date.desc, release_date.desc, vote_average.asc, vote_average.asc, vote_count.asc, vote_count.desc]
+                include_adult: boolean, default False
+                with_genres: str, what genre want to search for?
+                with_keyword: str, what keyword want to search for?
+                with_people: str, what character you want to watch?
+        """
+        pass
 
     # Get the most newly created movie. This is a live response and will continuously change.
     def get_latest_movie(self):
@@ -100,11 +135,36 @@ class TMDB_assistant():
         return top_n_list
 
 
+class TMDB_guest_session(TMDB_assistant):
+
+    def __init__(self):
+        TMDB_assistant.__init__(self)
+        print("TMDB_guess_session Created!")
+
+    def create_guest_session(self):
+        pass
+
+    def get_rated_movies(self):
+        pass
+
+    def set_movie_list(self):
+        pass
+
+    def delete_movie_list(self):
+        pass
+
+    def add_movie_to_list(self, movie):
+        pass
+
+    def delete_movie_from_list(self):
+        pass
+    
+
 
 if __name__ == '__main__':
     api_key="02834833a9dfe29dc2c55eb707c5a73c"
     TMDB_assistant = TMDB_assistant(api_key, "en-US")
-
+    print(type(TMDB_assistant))
 # Test get_popular_movie
     top_n = 10
     top_n_list = TMDB_assistant.get_popular_movies(top_n)
@@ -112,8 +172,10 @@ if __name__ == '__main__':
     print(type(top_n_list))
     print(len(top_n_list))
     # top1 = json.dumps(top_n_list[0], indent=4, sort_keys=True)
-    top1 = top_n_list[0]
+    top1 = top_n_list[2]
     print(top1)
+# Test get geners list:
+    print(TMDB_assistant.genres_list)
 
 # Test get_latest_movies
     latest_movie = TMDB_assistant.get_latest_movie()
