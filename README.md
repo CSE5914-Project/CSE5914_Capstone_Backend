@@ -29,6 +29,6 @@ API
 - How to run the server
   ```
   $py manage.py migrate (opt, to update the database)
-  $py managa.py runserver
+  $py manage.py runserver
   ```
 
