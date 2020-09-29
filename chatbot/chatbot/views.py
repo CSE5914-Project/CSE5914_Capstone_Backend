@@ -176,24 +176,26 @@ def post_answer(request):
         # assistant.end_session()
 
         # Get genre id:
-        user_answer = "Action"
-        requested_genre = user_answer.upper()
+        # user_answer = "Action"
+        # requested_genre = user_answer.upper()
         gener_list = server.get_genre_list()
         exist = False
+        # print(f"User request: {user_answer}")
         print(f"gener_list: {gener_list}")
         # gener_list = gener_list["genres"]
         gener_id = 0
         for item in gener_list:
-          print(item)
-          if item["name"] == requested_genre:
+          genre_type = item['name']
+          print(f"genre_type: {genre_type}, type: {type(genre_type)}")
+          if genre_type == user_answer:
             gener_id = item["id"]
             exist = True
             print(f"Found genre_id: {gener_id}")
 
         if exist:
-          robot_response = f"Found you requested genre with id {gener_id}"
+          robot_response = f"Found you requested genre{user_answer} with id {gener_id}"
         else:
-          robot_response = "Error, we can you find the result you are asking!"
+          robot_response = "Error, we don't have the result you are asking!"
         # get response and movie list
         
         server.movieList = tmdb_assistant.discover_movies(gener_id)
