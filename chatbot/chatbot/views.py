@@ -41,6 +41,11 @@ class Server():
     "questionString" :  "are you over 18?"
     }
   ]
+  def set_genre_list(self, genre_list):
+    self.genre_list = genre_list
+
+  def get_genre_list(self):
+    return self.genre_list
 
   def reset_server(self):
       self.__init__()
@@ -66,6 +71,8 @@ api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
 tmdb_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
 server = Server()
+genre_list = tmdb_assistant.get_all_genres()
+server.set_genre_list(genre_list)
 
 # Return the first robot questions to user interface
 @api_view(('GET',))
@@ -74,7 +81,6 @@ def reset_server(request):
     return Response(
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
-
 
 # -------------------------TMDB API Call ------------------------
 @api_view(('GET',))
@@ -135,11 +141,13 @@ def get_question(request):
 #       data={"questionString":robot_response,"questionCode":1}
 #     )
 
+# Assume the post_answer method only take care one question: "What genre do you like to watch?"
 @api_view(['GET', 'POST'])
-def post_answer(request):
+def post_answer_get_next_question(request):
     """
     List all code snippets, or create a new snippet.
     """
+    # If the request 'Get' method, the next reuqestion and current movieList will be returned
     if request.method == 'GET':
       return Response(
         data=[server.get_next_question(),
@@ -149,35 +157,50 @@ def post_answer(request):
       # serializer = SnippetSerializer(snippets, many=True)
       # return Response(serializer.data)
 
+    # If the request 'POST' method, the robot_response and the updated movieList will be returned
+    # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
+    # "movieList": { ... }}
     elif request.method == 'POST':
-        # ?? what this doing here?? 
-        # userResponse.append(user_response)
-        # if user_response['questionCode'] in userQuestions:
-        #   user_question = user_response['questionString']
-        # print(user_question)
 
-        # Obtain user answer
+        # Obtain user answer：
         user_response = request.data
-        print(user_response)
+        # print(user_response)
         user_answer = user_response["answerText"]
+        print(f"user_answer: {user_answer}")
 
         # Get response from IBM assistant:
         assistant.create_session()
         robot_response = assistant.ask_assistant(user_answer)
-        # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}
-        # assistant.end_session()
+        
+        # Search genre id based on user input:
+        user_answer = user_answer.capitalize()  # some query preprocessing
+        # user_answer = "Action"
+        gener_list = server.get_genre_list()  # Update the genre list in server object
+        exist = False # whether there is requested genre in TMDB database
+        # print(f"gener_list: {gener_list}")
+        gener_id = 0
 
+        for item in gener_list:
+          genre_type = item['name']
+          # print(f"item: {item}")
+          # print(f"genre_type: {genre_type}, type: {type(genre_type)}")
+          if genre_type == user_answer:
+            gener_id = item["id"]
+            exist = True
+            # print(f"Found genre_id: {gener_id}")
 
-        # get response and movie list
-        genre="Action"
-        server.movieList = tmdb_assistant.get_latest_movie()
-        # assistant.create_session()
-        # robotMessage = assistant.ask_assistant(user_answer)
-        # # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}
+        # Update the robot_response 
+        if exist:
+          robot_response = f"Found you requested genre {user_answer} with id {gener_id}"
+        else:
+          robot_response = "Error, we don't have the result you are asking!"
+        # Update the movieList
+        server.movieList = tmdb_assistant.discover_movies(gener_id)
         assistant.end_session()
+
+        responseData = {"robotResponse": robot_response, "movieList": server.movieList}
         return Response(
-            data={"robotResponse": robot_response, 
-              "movieList": server.movieList}
+            data= responseData
           # data=robot_response
         )
           
