@@ -41,6 +41,11 @@ class Server():
     "questionString" :  "are you over 18?"
     }
   ]
+  def set_genre_list(self, genre_list):
+    self.genre_list = genre_list
+
+  def get_genre_list(self):
+    return self.genre_list
 
   def reset_server(self):
       self.__init__()
@@ -66,6 +71,8 @@ api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
 tmdb_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
 server = Server()
+genre_list = tmdb_assistant.get_all_genres()
+server.set_genre_list(genre_list)
 
 # Return the first robot questions to user interface
 @api_view(('GET',))
@@ -74,7 +81,6 @@ def reset_server(request):
     return Response(
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
-
 
 # -------------------------TMDB API Call ------------------------
 @api_view(('GET',))
@@ -135,6 +141,7 @@ def get_question(request):
 #       data={"questionString":robot_response,"questionCode":1}
 #     )
 
+# Assume the post_answer method only take care one question: "What genre do you like to watch?"
 @api_view(['GET', 'POST'])
 def post_answer(request):
     """
@@ -158,8 +165,9 @@ def post_answer(request):
 
         # Obtain user answer
         user_response = request.data
-        print(user_response)
+        # print(user_response)
         user_answer = user_response["answerText"]
+        print(f"user_answer: {user_answer}")
 
         # Get response from IBM assistant:
         assistant.create_session()
@@ -167,10 +175,28 @@ def post_answer(request):
         # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}
         # assistant.end_session()
 
+        # Get genre id:
+        user_answer = "Action"
+        requested_genre = user_answer.upper()
+        gener_list = server.get_genre_list()
+        exist = False
+        print(f"gener_list: {gener_list}")
+        # gener_list = gener_list["genres"]
+        gener_id = 0
+        for item in gener_list:
+          print(item)
+          if item["name"] == requested_genre:
+            gener_id = item["id"]
+            exist = True
+            print(f"Found genre_id: {gener_id}")
 
+        if exist:
+          robot_response = f"Found you requested genre with id {gener_id}"
+        else:
+          robot_response = "Error, we can you find the result you are asking!"
         # get response and movie list
-        genre="Action"
-        server.movieList = tmdb_assistant.get_latest_movie()
+        
+        server.movieList = tmdb_assistant.discover_movies(gener_id)
         # assistant.create_session()
         # robotMessage = assistant.ask_assistant(user_answer)
         # # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}

@@ -7,10 +7,10 @@ class TMDB_assistant():
         self.api_key = api_key
         self.language = language
         # genres_list: A dict, with two item: id and name, e.g. {"id": 35 "name": "Comedy"}
-        self.genres_list = self.__get_all_genres()   
+        self.genres_list = self.get_all_genres()   
 
     # Get the list of official genres for movies
-    def __get_all_genres(self):
+    def get_all_genres(self):
         url = "https://api.themoviedb.org/3/genre/movie/list?api_key="+self.api_key+ "&language="+ self.language
         r = requests.get(url)
         json_data = r.json()
@@ -114,7 +114,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, sort_by="popularity.desc", genre="action"):
+    def discover_movies(self, sort_by="popularity.desc", genre="28"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -124,7 +124,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key=02834833a9dfe29dc2c55eb707c5a73c&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_people=Niki%20Caro&with_genres=action"
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres="+genre
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     print(len(top_n_list))
     # top1 = json.dumps(top_n_list[0], indent=4, sort_keys=True)
     top1 = top_n_list[2]
-    print(top_n_list)
+    # print(top_n_list)
 # Test genres_list:
     # print("Testing: get_popular_movies")
     # print(TMDB_assistant.genres_list)
@@ -189,14 +189,18 @@ if __name__ == '__main__':
     # latest_movie = TMDB_assistant.get_latest_movie()
     # print(latest_movie)
 
+# Test discover_movies:
+    print("Testing: discover_movies based on given genre")
+    movie_list = TMDB_assistant.discover_movies(28)
+    print(movie_list)
 
 # Test get_movie_by_id 
     print("Testing: get_movie_by_id")
     movie_id = 550
     movie_550 = TMDB_assistant.get_movie_by_id(movie_id)
     # print(json.dumps(movie_550, indent=4, sort_keys=True))
-    print(type(movie_550))
-    print(len(movie_550))
+    # print(type(movie_550))
+    # print(len(movie_550))
 
     # get movie description
     overview = TMDB_assistant.get_movie_overview(top1)
