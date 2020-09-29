@@ -31,4 +31,6 @@ API
   $py manage.py migrate (opt, to update the database)
   $py manage.py runserver
   ```
+- How to activate the venv environment?
+$ .\venv\Scripts\activate
 

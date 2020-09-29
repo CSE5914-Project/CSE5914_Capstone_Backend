@@ -71,11 +71,11 @@ def get_movie_by_id(request):
     json_data = tmdb_assistant.get_movie_by_id(movie_id)
     # geodata = response.json()
     return Response(
-      data={"movieList":json_data}
+      data={"movieList": json_data}
     )
 
 @api_view(('GET', ))
-def get_popular_movies(top_n=10):
+def get_popular_movies(query):
   """
   Argument: 
     top_n: int, the number of movie you want to retrive
@@ -83,8 +83,15 @@ def get_popular_movies(top_n=10):
     a list of top_n movie, each movie is constructed with a dictionary, e.g., 
     {'popularity': 2699.389, 'vote_count': 0, 'video': False, 'poster_path': '/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg', 'id': 694919, 'adult': False, 'backdrop_path': '/9Y12EdkIVvYir3uTcZGjqfXWBUv.jpg', 'original_language': 'en', 'original_title': 'Money Plane', 'genre_ids': [28], 'title': 'Money Plane', 'vote_average': 0, 'overview': "A professional thief with $40 million in debt and his family's life on the line must commit one final heist - rob a futuristic airborne casino filled with the world's most dangerous criminals.", 'release_date': '2020-09-29'}
   """
+  # All the request params store in the form of string, and you need to convert it to int!
+  top_n = int(query.query_params['top_n'])
+  # print(f"query.data: {query.data}, query.query_params: {query.query_params}")
+  # ==> query.data: {}, query.query_params: <QueryDict: {'top_n': ['10']}>
+  # print(f"top_n: {top_n}")
+  # print(f"top_n: {type(top_n)}")
   # Get the data from TMDB databases
   json_data = tmdb_assistant.get_popular_movies(top_n)
+  # json_data = json.loads(json_data)
   # update the movie list
   server.movieList = json_data
   return Response(

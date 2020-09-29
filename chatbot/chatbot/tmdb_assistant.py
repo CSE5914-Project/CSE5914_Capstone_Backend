@@ -87,6 +87,21 @@ class TMDB_assistant():
         json_data = response.json()
         return json_data
 
+    def get_popular_movies(self, top_n=10):
+        """
+            Argument: 
+                top_n: int, the number of movie you want to retrive
+            Return:
+                a list of top_n movie, each movie is constructed with a dictionary, e.g., 
+                {'popularity': 2699.389, 'vote_count': 0, 'video': False, 'poster_path': '/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg', 'id': 694919, 'adult': False, 'backdrop_path': '/9Y12EdkIVvYir3uTcZGjqfXWBUv.jpg', 'original_language': 'en', 'original_title': 'Money Plane', 'genre_ids': [28], 'title': 'Money Plane', 'vote_average': 0, 'overview': "A professional thief with $40 million in debt and his family's life on the line must commit one final heist - rob a futuristic airborne casino filled with the world's most dangerous criminals.", 'release_date': '2020-09-29'}
+        """
+        query_url = "https://api.themoviedb.org/3/movie/popular?api_key="+self.api_key +"&language="+self.language+"&page=1"
+        response = requests.get(query_url)
+        json_data = response.json()
+        # Extract 10 movie from response:
+        top_n_list = json_data["results"][:top_n]
+        return top_n_list
+
     def get_n_recommendation_for_movie(self, movie_id:int):
         query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/recommendations?api_key="+self.api_key+"&language=en-US&page=1"
         r = requests.get(query_url)
@@ -119,20 +134,6 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
 
-    def get_popular_movies(self, top_n=10):
-        """
-            Argument: 
-                top_n: int, the number of movie you want to retrive
-            Return:
-                a list of top_n movie, each movie is constructed with a dictionary, e.g., 
-                {'popularity': 2699.389, 'vote_count': 0, 'video': False, 'poster_path': '/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg', 'id': 694919, 'adult': False, 'backdrop_path': '/9Y12EdkIVvYir3uTcZGjqfXWBUv.jpg', 'original_language': 'en', 'original_title': 'Money Plane', 'genre_ids': [28], 'title': 'Money Plane', 'vote_average': 0, 'overview': "A professional thief with $40 million in debt and his family's life on the line must commit one final heist - rob a futuristic airborne casino filled with the world's most dangerous criminals.", 'release_date': '2020-09-29'}
-        """
-        query_url = "https://api.themoviedb.org/3/movie/popular?api_key="+self.api_key +"&language="+self.language+"&page=1"
-        r = requests.get(query_url)
-        json_data = r.json()
-        # Extract 10 movie from response:
-        top_n_list = json_data["results"][:top_n]
-        return top_n_list
 
 
 class TMDB_guest_session(TMDB_assistant):
@@ -166,37 +167,43 @@ if __name__ == '__main__':
     TMDB_assistant = TMDB_assistant(api_key, "en-US")
     print(type(TMDB_assistant))
 # Test get_popular_movie
+    print("Testing: get_popular_movies")
     top_n = 10
     top_n_list = TMDB_assistant.get_popular_movies(top_n)
-
     print(type(top_n_list))
     print(len(top_n_list))
     # top1 = json.dumps(top_n_list[0], indent=4, sort_keys=True)
     top1 = top_n_list[2]
-    print(top1)
-# Test get geners list:
-    print(TMDB_assistant.genres_list)
+    print(top_n_list)
+# Test genres_list:
+    # print("Testing: get_popular_movies")
+    # print(TMDB_assistant.genres_list)
 
 # Test get_latest_movies
-    latest_movie = TMDB_assistant.get_latest_movie()
+    # print("Testing: get_latest_movies")
+    # latest_movie = TMDB_assistant.get_latest_movie()
     # print(latest_movie)
 
+
 # Test get_movie_by_id 
+    print("Testing: get_movie_by_id")
     movie_id = 550
     movie_550 = TMDB_assistant.get_movie_by_id(movie_id)
     # print(json.dumps(movie_550, indent=4, sort_keys=True))
+    print(type(movie_550))
+    print(len(movie_550))
 
     # get movie description
     overview = TMDB_assistant.get_movie_overview(top1)
-    print(f"overview: {overview}")
+    # print(f"overview: {overview}")
 
     # get movie avatar_link
     avatar_link = TMDB_assistant.get_movie_avatar_link(top1)
-    print(f"avatar_link: {avatar_link}")
+    # print(f"avatar_link: {avatar_link}")
 
     # get movie trailer_link
     trailer_link = TMDB_assistant.get_movie_trailer_link(top1)
-    print(f"trailer_link: {trailer_link}")
+    # print(f"trailer_link: {trailer_link}")
 
 # Test get_n_recommendation_for_movie 
     # movid_id = 550
