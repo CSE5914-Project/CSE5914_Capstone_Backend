@@ -161,7 +161,6 @@ def post_answer_get_next_question(request):
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
     elif request.method == 'POST':
-
         # Obtain user answer：
         user_response = request.data
         # print(user_response)
@@ -170,8 +169,8 @@ def post_answer_get_next_question(request):
 
         # Get response from IBM assistant:
         assistant.create_session()
-        robot_response = assistant.ask_assistant(user_answer)
-        
+        user_answer = assistant.ask_assistant(user_answer)
+        print(f"user_answer: {user_answer}")
         # Search genre id based on user input:
         user_answer = user_answer.capitalize()  # some query preprocessing
         # user_answer = "Action"
@@ -201,6 +200,5 @@ def post_answer_get_next_question(request):
         responseData = {"robotResponse": robot_response, "movieList": server.movieList}
         return Response(
             data= responseData
-          # data=robot_response
         )
           
