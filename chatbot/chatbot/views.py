@@ -42,6 +42,9 @@ class Server():
     }
   ]
 
+  def reset_server(self):
+      self.__init__()
+
   # Update the serverState if there is question left, other wise return error!
   def get_next_question(self):
     question = {}
@@ -63,6 +66,15 @@ api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
 tmdb_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
 server = Server()
+
+# Return the first robot questions to user interface
+@api_view(('GET',))
+def reset_server(request):
+    server.reset_server()
+    return Response(
+      data="Session reset completed!" + "  Current server code: "+str(server.serverState)
+    )
+
 
 # -------------------------TMDB API Call ------------------------
 @api_view(('GET',))
@@ -130,7 +142,8 @@ def post_answer(request):
     """
     if request.method == 'GET':
       return Response(
-        data=server.get_next_question()
+        data=[server.get_next_question(),
+            {"movieList": server.movieList}]
       )
       # snippets = Snippet.objects.all()
       # serializer = SnippetSerializer(snippets, many=True)
@@ -155,12 +168,14 @@ def post_answer(request):
         assistant.end_session()
 
         # get response and movie list
-        # updatedMovieList = tmdb_assistant.get_movie_by_id(movie_id)
+        updatedMovieList = tmdb_assistant.get_movie_by_id(movie_id)
         # assistant.create_session()
         # robotMessage = assistant.ask_assistant(user_answer)
         # # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}
         # assistant.end_session()
         return Response(
-          data=robot_response
+            data=[server.get_next_question(),
+            {"movieList": server.movieList}]
+          # data=robot_response
         )
           
