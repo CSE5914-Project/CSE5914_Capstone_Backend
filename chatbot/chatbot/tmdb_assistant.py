@@ -131,7 +131,7 @@ class TMDB_assistant():
         r = requests.get(query_url)
         json_data = r.json()
         # Extract 10 movie from response:
-        top_n_list = json_data["results"][:top_n]
+        top_n_list = json_data["results"][:10]
         return top_n_list
 
 
