@@ -114,7 +114,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, sort_by="popularity.desc"):
+    def discover_movies(self, sort_by="popularity.desc", genre="action"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -124,7 +124,12 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        pass
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key=02834833a9dfe29dc2c55eb707c5a73c&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_people=Niki%20Caro&with_genres=action"
+        r = requests.get(query_url)
+        json_data = r.json()
+        return json_data
+        
+        
 
     # Get the most newly created movie. This is a live response and will continuously change.
     def get_latest_movie(self):

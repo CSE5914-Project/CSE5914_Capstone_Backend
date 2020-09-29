@@ -32,13 +32,13 @@ class Server():
      self.robot_question = [
     {
       "questionCode" : 1,
-      "questionString" : "are you over 18?"
+      "questionString" : "What genre would you like to watch?"
     },{
       "questionCode" : 2,
       "questionString" : "What language do you speak?"
     },{
       "questionCode" : 3,
-    "questionString" : "What genre would you like to watch?"
+    "questionString" :  "are you over 18?"
     }
   ]
 
@@ -120,7 +120,7 @@ def get_question(request):
     # assume greeting first
     # robot_question =  
     return Response(
-      data=server.get_next_question()
+      data=server.robot_question
     )
   
 # Return the first robot questions to user interface
@@ -165,17 +165,19 @@ def post_answer(request):
         assistant.create_session()
         robot_response = assistant.ask_assistant(user_answer)
         # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}
-        assistant.end_session()
+        # assistant.end_session()
+
 
         # get response and movie list
-        updatedMovieList = tmdb_assistant.get_movie_by_id(movie_id)
+        genre="Action"
+        server.movieList = tmdb_assistant.get_latest_movie()
         # assistant.create_session()
         # robotMessage = assistant.ask_assistant(user_answer)
         # # responseData = {"nextQuestionString": robotMessage,"nextQuestionCode": int(data['questionCode'])+1,"updatedMovieList" : updatedMovieList}
-        # assistant.end_session()
+        assistant.end_session()
         return Response(
-            data=[server.get_next_question(),
-            {"movieList": server.movieList}]
+            data={"robotResponse": robot_response, 
+              "movieList": server.movieList}
           # data=robot_response
         )
           
