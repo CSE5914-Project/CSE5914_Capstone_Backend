@@ -50,6 +50,7 @@ class Assistant:
 # Example usage of Assistant
 # --------------------------
 assistant = Assistant()
+print(assistant.ask_assistant("I speak English"))
 print(assistant.ask_assistant('yes i am'))
 print(assistant.ask_assistant('I want to watch action movie today'))
 print(assistant.ask_assistant('no i am not'))

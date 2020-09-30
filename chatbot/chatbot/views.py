@@ -22,25 +22,31 @@ userResponse = []
 userQuestions = []
 assistant = assistant.Assistant()
 
+# Set up TMDB_assistant
+api_key = "02834833a9dfe29dc2c55eb707c5a73c"
+language = "en-US"
+TMDB_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
+
 class Server():
-  
   def __init__(self):
-     self.serverState = 0
-     self.total_quesitons = 3
-     self.end_question = False
-     self.movieList = []
-     self.robot_question = [
+    self.user_genre = None
+    self.serverState = 0
+    self.total_quesitons = 3
+    self.end_question = False
+    self.movieList = []
+    self.robot_question = [
     {
       "questionCode" : 1,
-      "questionString" : "What genre would you like to watch?"
+      "questionString" : "What language do you speak?" 
     },{
       "questionCode" : 2,
-      "questionString" : "What language do you speak?"
+      "questionString" : "What genre would you like to watch?"
     },{
       "questionCode" : 3,
     "questionString" :  "are you over 18?"
     }
   ]
+
   def set_genre_list(self, genre_list):
     self.genre_list = genre_list
 
@@ -48,7 +54,7 @@ class Server():
     return self.genre_list
 
   def reset_server(self):
-      self.__init__()
+    self.__init__()
 
   # Update the serverState if there is question left, other wise return error!
   def get_next_question(self):
@@ -66,16 +72,22 @@ class Server():
       if self.serverState == self.total_quesitons:
         self.end_question = True
     return question
+  
+  def process_user_input(self, user_answer):
+    # Get response from IBM assistant:
+    assistant.create_session()
+    robot_response = assistant.ask_assistant(user_answer)
+    assistant.end_session()
+    return robot_response
 
-api_key = "02834833a9dfe29dc2c55eb707c5a73c"
-language = "en-US"
-tmdb_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
+
+# Set up Server
 server = Server()
-genre_list = tmdb_assistant.get_all_genres()
+genre_list = TMDB_assistant.get_all_genres()
 server.set_genre_list(genre_list)
 
 # Return the first robot questions to user interface
-@api_view(('GET',))
+@api_view(['GET'])
 def reset_server(request):
     server.reset_server()
     return Response(
@@ -83,32 +95,51 @@ def reset_server(request):
     )
 
 # -------------------------TMDB API Call ------------------------
-@api_view(('GET',))
+@api_view(['GET'])
 def get_movie_by_id(request):
     movie_id = 550
-    json_data = tmdb_assistant.get_movie_by_id(movie_id)
+    json_data = TMDB_assistant.get_movie_by_id(movie_id)
     # geodata = response.json()
     return Response(
       data={"movieList": json_data}
     )
 
-@api_view(('GET', ))
+@api_view(['GET'])
+def get_latest_movie(query):
+  # Get the data from TMDB databases
+  json_data = TMDB_assistant.get_latest_movie()
+  # update the movie list
+  print(f"json_data {json_data}")
+  server.movieList = json_data
+  return Response(
+    data={"movieList": json_data}
+  )
+
+@api_view(['GET'])
+def get_upcoming_movie(query):
+  # Get the data from TMDB databases
+  json_data = TMDB_assistant.get_upcoming_movie()
+  # update the movie list
+  print(f"json_data {json_data}")
+  server.movieList = json_data
+  return Response(
+    data={"movieList": json_data}
+  )
+
+@api_view(['GET'])
 def get_popular_movies(query):
   """
   Argument: 
     top_n: int, the number of movie you want to retrive
   Return:
     a list of top_n movie, each movie is constructed with a dictionary, e.g., 
-    {'popularity': 2699.389, 'vote_count': 0, 'video': False, 'poster_path': '/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg', 'id': 694919, 'adult': False, 'backdrop_path': '/9Y12EdkIVvYir3uTcZGjqfXWBUv.jpg', 'original_language': 'en', 'original_title': 'Money Plane', 'genre_ids': [28], 'title': 'Money Plane', 'vote_average': 0, 'overview': "A professional thief with $40 million in debt and his family's life on the line must commit one final heist - rob a futuristic airborne casino filled with the world's most dangerous criminals.", 'release_date': '2020-09-29'}
+    {'popularity': 2699.389, 'vote_count': 0,... 'release_date': '2020-09-29'}
   """
-  # All the request params store in the form of string, and you need to convert it to int!
   top_n = int(query.query_params['top_n'])
   # print(f"query.data: {query.data}, query.query_params: {query.query_params}")
   # ==> query.data: {}, query.query_params: <QueryDict: {'top_n': ['10']}>
-  # print(f"top_n: {top_n}")
-  # print(f"top_n: {type(top_n)}")
   # Get the data from TMDB databases
-  json_data = tmdb_assistant.get_popular_movies(top_n)
+  json_data = TMDB_assistant.get_popular_movies(top_n)
   # json_data = json.loads(json_data)
   # update the movie list
   server.movieList = json_data
@@ -120,30 +151,71 @@ def get_popular_movies(query):
 def hello(request):
   return JsonResponse({'response_text':'hello world!'})
 
-# Return the first robot questions to user interface
-@api_view(('GET',))
-def get_question(request):
-    # assume greeting first
-    # robot_question =  
+# Front end will post the language, e.g. en-US, and the TMDB server will update the language.
+@api_view(["POST"])
+def set_up_languages(request):
+  language = request.data["language"]
+  print(f"language: {language}")
+  TMDB_assistant.set_language(language)
+  return Response({"message": "Updated language to: "+language})
+
+# Return all robot questions to user interface
+@api_view(['GET'])
+def get_all_question(request):
     return Response(
       data=server.robot_question
     )
   
-# Return the first robot questions to user interface
-# @api_view(('GET',))
-# def get_question(request):
-#     assistant.create_session()
-#     user_question = userQuestions[1] # assume greeting first
-#     robot_response = assistant.ask_assistant(user_question)
-#     assistant.end_session()
-#     # geodata = response.json()
-#     return Response(
-#       data={"questionString":robot_response,"questionCode":1}
-#     )
+# Return the first robot question and server.movieList to user interface
+@api_view(['GET'])
+def get_next_question(request):
+    return Response(
+      data=[server.get_next_question(),{"movieList": server.movieList}]
+    )
+
+# Return the first robot question and server.movieList to user interface
+@api_view(['GET'])
+def get_current_movie_list(request):
+    return Response(
+      data={"movieList": server.movieList}
+    )
+
+# Return the first robot question and server.movieList to user interface
+@api_view(['GET'])
+def get_recommendation_for_movie(request):
+  movie_id = request.query_params["movie_id"]
+  print(f"movie_id: {movie_id}")
+  movieList = TMDB_assistant.get_recommendation_for_movie(movie_id)
+  server.movieList = movieList
+  return Response(
+    data={"movieList": server.movieList}
+  )
+
+@api_view(['GET'])
+def get_similar_movies(request):
+  movie_id = request.query_params["movie_id"]
+  print(f"movie_id: {movie_id}")
+  movieList = TMDB_assistant.get_similar_movies(movie_id)
+  server.movieList = movieList
+  return Response(
+    data={"movieList": server.movieList}
+  )
+
+@api_view(['GET'])
+def get_IBM_response(request):
+  # Obtain user answer：
+  user_answer = request.query_params["answerText"]
+  # Get response from IBM assistant:
+  assistant.create_session()
+  robot_response = assistant.ask_assistant(user_answer)
+  assistant.end_session()
+  return Response(
+    data= {"robotResponse": robot_response}
+  )
 
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
 @api_view(['GET', 'POST'])
-def post_answer_get_next_question(request):
+def post_answer(request):
     """
     List all code snippets, or create a new snippet.
     """
@@ -153,10 +225,6 @@ def post_answer_get_next_question(request):
         data=[server.get_next_question(),
             {"movieList": server.movieList}]
       )
-      # snippets = Snippet.objects.all()
-      # serializer = SnippetSerializer(snippets, many=True)
-      # return Response(serializer.data)
-
     # If the request 'POST' method, the robot_response and the updated movieList will be returned
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
@@ -165,12 +233,12 @@ def post_answer_get_next_question(request):
         user_response = request.data
         # print(user_response)
         user_answer = user_response["answerText"]
-        print(f"user_answer: {user_answer}")
+        # print(f"user_answer: {user_answer}")
 
         # Get response from IBM assistant:
         assistant.create_session()
         user_answer = assistant.ask_assistant(user_answer)
-        print(f"user_answer: {user_answer}")
+        # print(f"user_answer: {user_answer}")
         # Search genre id based on user input:
         user_answer = user_answer.capitalize()  # some query preprocessing
         # user_answer = "Action"
@@ -186,6 +254,8 @@ def post_answer_get_next_question(request):
           if genre_type == user_answer:
             gener_id = item["id"]
             exist = True
+            # Store genre
+            server.user_genre = gener_id
             # print(f"Found genre_id: {gener_id}")
 
         # Update the robot_response 
@@ -194,11 +264,8 @@ def post_answer_get_next_question(request):
         else:
           robot_response = "Error, we don't have the result you are asking!"
         # Update the movieList
-        server.movieList = tmdb_assistant.discover_movies(gener_id)
+        server.movieList = TMDB_assistant.discover_movies(gener_id)
         assistant.end_session()
-
-        responseData = {"robotResponse": robot_response, "movieList": server.movieList}
         return Response(
-            data= responseData
+            data= {"robotResponse": robot_response, "movieList": server.movieList}
         )
-          

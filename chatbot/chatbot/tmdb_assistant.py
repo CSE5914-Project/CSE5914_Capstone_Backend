@@ -50,7 +50,7 @@ class TMDB_assistant():
 
     def get_movie_trailer_link(self, json_object):
         movie_id = self.get_movie_id(json_object)
-        url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language=en-US"
+        url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language="+self.language
         r = requests.get(url)
         json_data = r.json()
         key = json_data.get("results")[0].get("key")
@@ -102,14 +102,14 @@ class TMDB_assistant():
         top_n_list = json_data["results"][:top_n]
         return top_n_list
 
-    def get_n_recommendation_for_movie(self, movie_id:int):
-        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/recommendations?api_key="+self.api_key+"&language=en-US&page=1"
+    def get_recommendation_for_movie(self, movie_id:int):
+        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/recommendations?api_key="+self.api_key+"&language="+self.language+"&page=1"
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
 
     def get_similar_movies(self, movie_id:int):
-        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/recommendations?api_key="+self.api_key+"&language=en-US&page=1"
+        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/recommendations?api_key="+self.api_key+"&language="+self.language+"&page=1"
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -129,20 +129,22 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
         
-        
 
     # Get the most newly created movie. This is a live response and will continuously change.
     def get_latest_movie(self):
-        
-        query_url = "https://api.themoviedb.org/3/movie/latest?api_key="+self.api_key + "&language=en-US"
+        query_url = "https://api.themoviedb.org/3/movie/latest?api_key="+self.api_key + "&language="+self.language
+        r = requests.get(query_url)
+        json_data = r.json()
+        return json_data
+
+    def get_upcoming_movie(self):
+        query_url = "https://api.themoviedb.org/3/movie/upcoming?api_key="+self.api_key +"&language="+self.language+"US&page=1"
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
 
 
-
 class TMDB_guest_session(TMDB_assistant):
-
     def __init__(self):
         TMDB_assistant.__init__(self)
         print("TMDB_guess_session Created!")
