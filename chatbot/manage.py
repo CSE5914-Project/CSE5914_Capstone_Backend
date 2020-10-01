@@ -21,20 +21,23 @@ def main():
 
 
 if __name__ == '__main__':
-    # Start main() as a process
-    p = multiprocessing.Process(target=main, name="Main")
-    p.start()
+    main() 
+#   Uncomment the following code and comment the main() above to pass the Travis-CI testing. 
+#   DO NOT uncomment for demo because it stops main() after 30 seconds. 
+#     # Start main() as a process
+#     p = multiprocessing.Process(target=main, name="Main")
+#     p.start()
 
-    # Wait 30 seconds for main()
-    time.sleep(30)
+#     # Wait 30 seconds for main()
+#     time.sleep(30)
 
-    # If thread is active
-    if p.is_alive():
-        print ("main() is running... let's kill it...")
+#     # If thread is active
+#     if p.is_alive():
+#         print ("main() is running... let's kill it...")
 
-        # Terminate main()
-        p.terminate()
+#         # Terminate main()
+#         p.terminate()
 
-    # Cleanup
-    p.join()
+#     # Cleanup
+#     p.join()
 
