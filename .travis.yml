@@ -31,4 +31,4 @@ script:
   - cd chatbot
   - python manage.py migrate
   - python manage.py runserver
-  - exit()
+  - pkill -f manage
