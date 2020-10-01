@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     # If thread is active
     if p.is_alive():
-        print "main() is running... let's kill it..."
+        print ("main() is running... let's kill it...")
 
         # Terminate main()
         p.terminate()
