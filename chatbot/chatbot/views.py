@@ -214,13 +214,13 @@ def get_IBM_response(request):
   )
 
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def post_answer(request):
     """
     List all code snippets, or create a new snippet.
     """
     # If the request 'Get' method, the next reuqestion and current movieList will be returned
-    if request.method == 'GET':
+    if request.method == 'POST':
       return Response(
         data=[server.get_next_question(),
             {"movieList": server.movieList}]
@@ -228,7 +228,7 @@ def post_answer(request):
     # If the request 'POST' method, the robot_response and the updated movieList will be returned
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
-    elif request.method == 'POST':
+    elif request.method == 'GET':
         # Obtain user answer：
         user_response = request.data
         # print(user_response)
