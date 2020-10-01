@@ -114,7 +114,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, sort_by="popularity.desc", genre="28"):
+    def discover_movies(self, sort_by="popularity.desc", gener_id="28"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -124,7 +124,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres="+genre
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres="+str(gener_id)
         r = requests.get(query_url)
         json_data = r.json()
         return json_data

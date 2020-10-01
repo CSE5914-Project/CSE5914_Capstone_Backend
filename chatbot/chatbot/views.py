@@ -229,10 +229,7 @@ def post_answer(request):
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
     elif request.method == 'GET':
-        # Obtain user answer：
-        user_response = request.data
-        # print(user_response)
-        user_answer = user_response["answerText"]
+        user_answer = request.query_params["answerText"]
         # print(f"user_answer: {user_answer}")
 
         # Get response from IBM assistant:
@@ -264,7 +261,7 @@ def post_answer(request):
         else:
           robot_response = "Error, we don't have the result you are asking!"
         # Update the movieList
-        server.movieList = TMDB_assistant.discover_movies(gener_id)
+        server.movieList = TMDB_assistant.discover_movies(gener_id=gener_id)
         assistant.end_session()
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
