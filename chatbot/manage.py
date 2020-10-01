@@ -3,6 +3,8 @@
 import os
 import sys
 
+import multiprocessing
+import time
 
 def main():
     """Run administrative tasks."""
@@ -19,4 +21,20 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Start main() as a process
+    p = multiprocessing.Process(target=main, name="Main")
+    p.start()
+
+    # Wait 30 seconds for main()
+    time.sleep(30)
+
+    # If thread is active
+    if p.is_alive():
+        print "main() is running... let's kill it..."
+
+        # Terminate main()
+        p.terminate()
+
+    # Cleanup
+    p.join()
+
