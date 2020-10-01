@@ -31,3 +31,4 @@ script:
   - cd chatbot
   - python manage.py migrate
   - python manage.py runserver
+  - timeout 30s exit
