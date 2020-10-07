@@ -45,3 +45,7 @@ target/
 
 # Cython debug symbols
 cython_debug/
+.idea/
+.DS_Store
+chatbot/.DS_Store
+chatbot/api/.DS_Store
