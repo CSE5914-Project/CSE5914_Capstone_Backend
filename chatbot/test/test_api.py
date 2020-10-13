@@ -20,9 +20,7 @@ def test_post_answer1():
     print(f"User answer: {r.json()}")
 
 def get_top_n_popular_movie():
-    top_n=10
     pass
-
 
 if __name__ == '__main__':
     test_get_movies1()

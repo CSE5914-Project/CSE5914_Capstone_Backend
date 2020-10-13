@@ -97,13 +97,43 @@ def reset_server(request):
 # -------------------------TMDB API Call ------------------------
 @api_view(['GET'])
 def get_movie_by_id(request):
-    movie_id = 550
+    movie_id = request.query_params["movie_id"]
     json_data = TMDB_assistant.get_movie_by_id(movie_id)
     # geodata = response.json()
     return Response(
       data={"movieList": json_data}
     )
 
+# Return the first robot question and server.movieList to user interface
+@api_view(['GET'])
+def get_current_movie_list(request):
+    return Response(
+      data={"movieList": server.movieList}
+    )
+
+@api_view(['GET'])
+def get_movie_trailer_link(request):
+  movie_id = request.query_params["movie_id"]
+  trailer_link = TMDB_assistant.get_movie_trailer_link(movie_id)
+  # print(f"movie_id: {trailer_link}")
+  return Response(
+    data={"trailer": trailer_link}
+  )
+
+@api_view(['GET'])
+def get_movie_overview(request):
+  movie_id = request.query_params["movie_id"]
+  print(f"movie_id: {movie_id}")
+  movie_json_object = TMDB_assistant.get_movie_by_id(movie_id)
+  overview = movie_json_object.get("overview")
+  if overview==None:
+    overview = "Error!! overview doesn't exist for the given movie!"
+  return Response(
+    data={"trailer": overview}
+  )
+
+
+# Return one movie object
 @api_view(['GET'])
 def get_latest_movie(query):
   # Get the data from TMDB databases
@@ -116,9 +146,10 @@ def get_latest_movie(query):
   )
 
 @api_view(['GET'])
-def get_upcoming_movie(query):
+def get_upcoming_movie(request):
+  page = int(request.query_params['page'])
   # Get the data from TMDB databases
-  json_data = TMDB_assistant.get_upcoming_movie()
+  json_data = TMDB_assistant.get_upcoming_movie(page)
   # update the movie list
   print(f"json_data {json_data}")
   server.movieList = json_data
@@ -127,7 +158,7 @@ def get_upcoming_movie(query):
   )
 
 @api_view(['GET'])
-def get_popular_movies(query):
+def get_popular_movies(request):
   """
   Argument: 
     top_n: int, the number of movie you want to retrive
@@ -135,16 +166,41 @@ def get_popular_movies(query):
     a list of top_n movie, each movie is constructed with a dictionary, e.g., 
     {'popularity': 2699.389, 'vote_count': 0,... 'release_date': '2020-09-29'}
   """
-  top_n = int(query.query_params['top_n'])
+  top_n = int(request.query_params['top_n'])
+  page = int(request.query_params['page'])
   # print(f"query.data: {query.data}, query.query_params: {query.query_params}")
   # ==> query.data: {}, query.query_params: <QueryDict: {'top_n': ['10']}>
   # Get the data from TMDB databases
-  json_data = TMDB_assistant.get_popular_movies(top_n)
+  json_data = TMDB_assistant.get_popular_movies(top_n, page)
   # json_data = json.loads(json_data)
   # update the movie list
   server.movieList = json_data
   return Response(
     data={"movieList":json_data}
+  )
+
+
+# Return the first robot question and server.movieList to user interface
+@api_view(['GET'])
+def get_recommendation_for_movie(request):
+  movie_id = request.query_params["movie_id"]
+  page = int(request.query_params['page'])
+  print(f"movie_id: {movie_id}")
+  movieList = TMDB_assistant.get_recommendation_for_movie(movie_id, page)
+  server.movieList = movieList
+  return Response(
+    data={"movieList": server.movieList}
+  )
+
+@api_view(['GET'])
+def get_similar_movies(request):
+  movie_id = request.query_params["movie_id"]
+  page = int(request.query_params['page'])
+  print(f"movie_id: {movie_id}")
+  movieList = TMDB_assistant.get_similar_movies(movie_id, page)
+  server.movieList = movieList
+  return Response(
+    data={"movieList": server.movieList}
   )
 
 # -------------------IBM API Call --------------------
@@ -173,34 +229,6 @@ def get_next_question(request):
       data=[server.get_next_question(),{"movieList": server.movieList}]
     )
 
-# Return the first robot question and server.movieList to user interface
-@api_view(['GET'])
-def get_current_movie_list(request):
-    return Response(
-      data={"movieList": server.movieList}
-    )
-
-# Return the first robot question and server.movieList to user interface
-@api_view(['GET'])
-def get_recommendation_for_movie(request):
-  movie_id = request.query_params["movie_id"]
-  print(f"movie_id: {movie_id}")
-  movieList = TMDB_assistant.get_recommendation_for_movie(movie_id)
-  server.movieList = movieList
-  return Response(
-    data={"movieList": server.movieList}
-  )
-
-@api_view(['GET'])
-def get_similar_movies(request):
-  movie_id = request.query_params["movie_id"]
-  print(f"movie_id: {movie_id}")
-  movieList = TMDB_assistant.get_similar_movies(movie_id)
-  server.movieList = movieList
-  return Response(
-    data={"movieList": server.movieList}
-  )
-
 @api_view(['GET'])
 def get_IBM_response(request):
   # Obtain user answer：
@@ -225,6 +253,7 @@ def post_answer(request):
         data=[server.get_next_question(),
             {"movieList": server.movieList}]
       )
+
     # If the request 'POST' method, the robot_response and the updated movieList will be returned
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}

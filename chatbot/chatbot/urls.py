@@ -30,10 +30,13 @@ urlpatterns = [
     path('api/get_IBM_response/',views.get_IBM_response,name='get_IBM_response'),
 # --------------------------------Movie relevant request    -----------
     path('api/get_current_movie_list/',views.get_current_movie_list,name='get_current_movie_list'),
+    path('api/get_movie_by_id/',views.get_movie_by_id,name='get_movies'),
+    path('api/get_movie_trailer_link/',views.get_movie_trailer_link,name='get_movie_trailer_link'),
+    path('api/get_movie_overview/',views.get_movie_overview,name='get_movie_overview'),
+    
     path('api/get_popular_movies/',views.get_popular_movies,name='get_popular_movies'),
     path('api/get_latest_movie/',views.get_latest_movie,name='get_latest_movie'),
     path('api/get_upcoming_movie/',views.get_upcoming_movie,name='get_upcoming_movie'),
-    path('api/get_movie_by_id/',views.get_movie_by_id,name='get_movies'),
     path('api/get_similar_movies/',views.get_similar_movies,name='get_similar_movies'),
     path('api/get_recommendation_for_movie/',views.get_recommendation_for_movie,name='get_recommendation_for_movie'),
 ]
