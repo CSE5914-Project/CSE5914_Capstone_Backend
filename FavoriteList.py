@@ -14,6 +14,13 @@ class FavoriteList:
         cursor.execute(create_table)
 
     def add_new_movie(self, username, movie_id):
+        """Add a movie to user's favorites
+
+        Parameters
+        ----------
+            username: str
+            movie_id: int, movie's id
+        """
 
         cursor = self.conn.cursor()
         sql = ''' INSERT INTO favorites(username, movieid)
@@ -26,12 +33,28 @@ class FavoriteList:
             print("fail to add to list", e.args[0])
 
     def fetch_favorites(self, username):
+        """Fetch all user's favorites
+
+        Parameters
+        ----------
+            username: str
+
+        Returns
+        -------
+            list of int,
+                return a list of user's favorite movies' ids
+                example: [101. 24. 122]
+
+        """
 
         cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM favorites WHERE username=?", (username,))
 
         rows = cursor.fetchall();
-        return rows
+        result = []
+        for element in rows:
+            result.append(element[1])
+        return result
 
     def delete_favorite(self, username, movie_id):
 

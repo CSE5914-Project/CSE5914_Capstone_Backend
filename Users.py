@@ -8,7 +8,8 @@ class User:
         create_table = """ CREATE TABLE IF NOT EXISTS users (
                                         username varchar PRIMARY KEY,
                                         age varchar,
-                                        language varchar
+                                        language varchar,
+                                        lastmovie varchar
                                     ); """
         cursor = self.conn.cursor()
         cursor.execute(create_table)
@@ -53,7 +54,7 @@ class User:
         Returns
         -------
             tuple,
-                A tuple of users information that contains (username, age, language)
+                A tuple of users information that contains (username, age, language, last_movie)
                 If user does not exist, returns None.
         """
         cursor = self.conn.cursor()
@@ -63,7 +64,6 @@ class User:
         if len(rows) > 0:
             return rows[0]
         return None
-
 
     def delete_user(self, username):
         """Delete a user
@@ -78,6 +78,27 @@ class User:
         cursor.execute(sql, (username,))
         self.conn.commit()
 
+    def update_last_movie(self, username, last_movie):
+        """Update user's lastest state
+
+        Parameters
+        ----------
+            username: str
+                user's username
+            last_movie: str
+                user's last state. Can be "popular", [genre], or [movie id] as string
+        """
+        sql = ''' UPDATE users
+                  SET lastmovie=?
+                  WHERE username=? '''
+        cursor = self.conn.cursor()
+
+        try:
+            cursor.execute(sql, (last_movie, username))
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print("fail to update last movie", e.args[0])
+
 
 # ==============================================
 # Example inputs
@@ -86,3 +107,4 @@ class User:
 # print(user.fetch_user_info("brandons"))
 # user.delete_user("brandon")
 # print(userinfo)
+# user.update_last_movie("brandon", "action")
