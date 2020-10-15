@@ -30,6 +30,7 @@ TMDB_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
 class Server():
   def __init__(self):
     self.user_genre = None
+    self.userinfo = {}
     self.serverState = 0
     self.total_quesitons = 3
     self.end_question = False
@@ -93,6 +94,19 @@ def reset_server(request):
     return Response(
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
+
+@api_view(['GET'])
+def create_user_session(request):
+    # server.userinfo["username"] = request.query_params["username"]
+    # server.userinfo["age"]  = request.query_params["age"]
+    # server.userinfo["password"]  = request.query_params["password"]
+    # server.userinfo["language"]  = request.query_params["language"]
+    server.user_token, server.session_id = TMDB_assistant.create_user_session()
+    # You must open the browser, and grated the authentication within 5 sec in order to create the session.
+    return Response(
+      data="User session created successfully!" + "  User token: "+str(server.user_token) + "  User session_id: "+str(server.session_id)
+    )
+
 
 # -------------------------TMDB API Call ------------------------
 @api_view(['GET'])
@@ -259,6 +273,7 @@ def post_answer(request):
     # "movieList": { ... }}
     elif request.method == 'GET':
         user_answer = request.query_params["answerText"]
+        page = int(request.query_params['page'])
         # print(f"user_answer: {user_answer}")
 
         # Get response from IBM assistant:
@@ -290,7 +305,7 @@ def post_answer(request):
         else:
           robot_response = "Error, we don't have the result you are asking!"
         # Update the movieList
-        server.movieList = TMDB_assistant.discover_movies(gener_id=gener_id)
+        server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
         assistant.end_session()
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
