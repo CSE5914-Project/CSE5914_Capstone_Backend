@@ -7,7 +7,7 @@ class TMDB_assistant():
         self.api_key = api_key
         self.language = language
         # genres_list: A dict, with two item: id and name, e.g. {"id": 35 "name": "Comedy"}
-        self.genres_list = self.get_all_genres()   
+        genres_list = self.get_all_genres()   
 
     def get_permissions_link(self):
         query_str = "https://api.themoviedb.org/3/authentication/token/new?api_key=" +self.api_key

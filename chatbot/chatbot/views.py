@@ -175,6 +175,7 @@ def create_guest_session(request):
   server.data["userinfo"]["username"] = request.query_params["username"]
   server.data["userinfo"]["age"]  = request.query_params["age"]
   server.data["userinfo"]["language"]  = request.query_params["language"]
+  TMDB_assistant.language = request.query_params.get("language")
   success, guest_session_id, expires_at = TMDB_assistant.create_guest_session()
   if success:
     server.data["userinfo"]["guest_session_id"] = guest_session_id
@@ -206,6 +207,7 @@ def update_user_info(request):
     server.data["userinfo"]["age"]  = request.query_params.get("age")
   if request.query_params.__contains__("language"):
     server.data["userinfo"]["language"]  = request.query_params.get("language")
+    TMDB_assistant.language = request.query_params.get("language")
   server.save_data()
   return Response(
     data=server.data["userinfo"]
