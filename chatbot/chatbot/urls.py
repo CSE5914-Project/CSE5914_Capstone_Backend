@@ -26,6 +26,11 @@ urlpatterns = [
     path('api/hello/',views.hello,name='hello'),
     path('api/get_permissions_link/',views.get_permissions_link,name='get_permissions_link'),
     path('api/create_user_session/',views.create_user_session,name='create_user_ses1sion'),
+# =================================== page Status management 
+    path('api/get_browser_status/',views.get_browser_status,name='get_browser_status'),
+    path('api/update_last_movie_id/',views.update_last_movie_id,name='update_last_movie_id'),
+    path('api/update_last_genere_text/',views.update_last_genere_text,name='update_last_genere_text'),
+
 # =================================== User Session management 
     path('api/create_guest_session/',views.create_guest_session,name='create_guest_session'),
     path('api/get_user_info/',views.get_user_info,name='get_user_info'),

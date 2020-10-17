@@ -16,6 +16,11 @@ from . import assistant
 from . import tmdb_assistant
 import requests
 import json
+from enum import Enum
+class movieSource(Enum):
+  default = "popular"
+  byId =  "byId"
+  byGenere = "byGenere"
 
 # from . import utils
 
@@ -23,6 +28,7 @@ robotResponse = []
 userResponse = []
 userQuestions = []
 assistant = assistant.Assistant()
+
 
 # Set up TMDB_assistant
 api_key = "02834833a9dfe29dc2c55eb707c5a73c"
@@ -41,8 +47,13 @@ class Server():
           "guest_session_id": None,
           "expires_at": None
         },
+        "browser_status": {
+          "movieSource":movieSource.default.value,
+          "lastMovieId": None,
+          "lastGenreText": None,
+        },
+        "favorite_list":{},
         "movieList":TMDB_assistant.get_popular_movies(),
-        "favorite_list":{}
       }
     self.serverState = 0
     self.total_quesitons = 3
@@ -115,6 +126,32 @@ def reset_server(request):
     return Response(
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
+
+# =================================== browser Status management 
+@api_view(['GET'])
+def get_browser_status(request):
+  return Response(
+    data={"browser_status":server.data["browser_status"] }
+  )
+
+@api_view(['GET'])
+def update_last_movie_id(request):
+  server.data["browser_status"]["movieSource"] = movieSource.byId.value
+  server.data["browser_status"]["lastMovieId"]= request.query_params["lastMovieId"]
+  server.save_data()
+  return Response(
+    data={"browser_status":server.data["browser_status"] }
+  )
+
+@api_view(['GET'])
+def update_last_genere_text(request):
+  server.data["browser_status"]["movieSource"] = movieSource.byGenere.value
+  server.data["browser_status"]["lastGenreText"]= request.query_params["lastGenreText"]
+  server.save_data()
+  return Response(
+    data={"browser_status":server.data["browser_status"] }
+  )
+
 # =================================== MovieList management 
 @api_view(['GET'])
 def get_current_favorite_list(request):
