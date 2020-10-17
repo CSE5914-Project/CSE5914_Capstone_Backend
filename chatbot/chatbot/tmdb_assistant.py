@@ -16,14 +16,14 @@ class TMDB_assistant():
         url = "https://www.themoviedb.org/authenticate/"+tmp_token
         return url, tmp_token
     
-    def create_user_session(self):
-        new_session_url =  "https://api.themoviedb.org/3/authentication/session/new?api_key="+self.api_key
-        payload = {
-            "request_token": tmp_token
-        }
-        response = requests.post(new_session_url, json=payload)
-        session_id = response.json()["session_id"]
-        return session_id
+    # def create_user_session(self):
+    #     new_session_url =  "https://api.themoviedb.org/3/authentication/session/new?api_key="+self.api_key
+    #     payload = {
+    #         "request_token": tmp_token
+    #     }
+    #     response = requests.post(new_session_url, json=payload)
+    #     session_id = response.json()["session_id"]
+    #     return session_id
 
     def create_guest_session(self):
         url =  "https://api.themoviedb.org/3/authentication/guest_session/new?api_key="+self.api_key
@@ -198,7 +198,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, page=1, sort_by="popularity.desc", gener_id="28"):
+    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -208,7 +208,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&"+str(page)+"&with_genres="+str(gener_id)
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -256,7 +256,7 @@ class TMDB_guest_session(TMDB_assistant):
 if __name__ == '__main__':
     api_key="02834833a9dfe29dc2c55eb707c5a73c"
     TMDB_assistant = TMDB_assistant(api_key, "en-US")
-    tmp_token = TMDB_assistant.create_user_session()
+    # tmp_token = TMDB_assistant.create_user_session()
 
     # print(type(TMDB_assistant))
 # Test get_popular_movie
@@ -279,7 +279,7 @@ if __name__ == '__main__':
 
 # Test discover_movies:
     print("Testing: discover_movies based on given genre")
-    movie_list = TMDB_assistant.discover_movies(28)
+    movie_list = TMDB_assistant.discover_movies(page=100, gener_id=28)
     print(movie_list)
 
 # Test get_movie_by_id 
