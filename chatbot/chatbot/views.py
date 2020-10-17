@@ -297,7 +297,6 @@ def get_popular_movies(request):
     data={"movieList":json_data}
   )
 
-
 # Return the first robot question and server.movieList to user interface
 @api_view(['GET'])
 def get_recommendation_for_movie(request):

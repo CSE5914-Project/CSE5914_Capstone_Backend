@@ -208,7 +208,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&"+page+"&with_genres="+str(gener_id)
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&"+str(page)+"&with_genres="+str(gener_id)
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
