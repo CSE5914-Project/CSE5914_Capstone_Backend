@@ -17,6 +17,8 @@ from . import tmdb_assistant
 import requests
 import json
 
+from . import utils
+
 robotResponse = []
 userResponse = []
 userQuestions = []
@@ -30,7 +32,17 @@ TMDB_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
 class Server():
   def __init__(self):
     self.user_genre = None
-    self.userinfo = {}
+    self.data = {
+        "userinfo":{
+          "username": None,
+          'age': 21,
+          'language': 'en',
+          'session_id': None,
+          "guest_session_id": None,
+          "expires_at": None
+        }
+      }
+    self.guest_session_id = None
     self.serverState = 0
     self.total_quesitons = 3
     self.end_question = False
@@ -47,6 +59,13 @@ class Server():
     "questionString" :  "are you over 18?"
     }
   ]
+  def save_data(self):
+    with open('data.txt', 'w') as outfile:
+      json.dump(self.data, outfile)
+
+  def read_data(self):
+    with open('data.txt', 'r') as outfile:
+      self.data = json.load(outfile)
 
   def set_genre_list(self, genre_list):
     self.genre_list = genre_list
@@ -96,17 +115,64 @@ def reset_server(request):
     )
 
 @api_view(['GET'])
+def get_permissions_link(request):
+  url, server.data["tmp_token"] = TMDB_assistant.get_permissions_link()
+  return Response(
+    data={"url": url, "tmp_token": server.data["tmp_token"]}
+  )
+
+@api_view(['GET'])
 def create_user_session(request):
-    # server.userinfo["username"] = request.query_params["username"]
-    # server.userinfo["age"]  = request.query_params["age"]
-    # server.userinfo["password"]  = request.query_params["password"]
-    # server.userinfo["language"]  = request.query_params["language"]
+    server.data["userinfo"]["username"] = request.query_params["username"]
+    server.data["userinfo"]["age"]  = request.query_params["age"]
+    server.data["userinfo"]["language"]  = request.query_params["language"]
     server.user_token, server.session_id = TMDB_assistant.create_user_session()
     # You must open the browser, and grated the authentication within 5 sec in order to create the session.
+    server.save_data()
     return Response(
-      data="User session created successfully!" + "  User token: "+str(server.user_token) + "  User session_id: "+str(server.session_id)
+      data={"mesage":"User session created successfully!", "data":server.data["userinfo"]}
     )
 
+@api_view(['GET'])
+def create_guest_session(request):
+  server.data["userinfo"]["username"] = request.query_params["username"]
+  server.data["userinfo"]["age"]  = request.query_params["age"]
+  server.data["userinfo"]["language"]  = request.query_params["language"]
+  success, guest_session_id, expires_at = TMDB_assistant.create_guest_session()
+  if success:
+    server.data["userinfo"]["guest_session_id"] = guest_session_id
+    server.data["userinfo"]["expires_at"] = expires_at
+    server.save_data()
+    data = {"message": "Guest session created successfully!", "data":server.data["userinfo"]}
+  else:
+    data = {"message": "Error, Invalid API key: You must be granted a valid key."}
+  return Response( 
+    data=data
+  )
+
+@api_view(['GET'])
+def get_user_info(request):
+  server.read_data()
+  return Response(
+    data=server.data
+  )
+
+@api_view(['GET'])
+def update_user_info(request):
+  server.read_data()
+  # server.data["userinfo"]["username"] = request.query_params.get("username")
+  # server.data["userinfo"]["age"]  = request.query_params.get("age")
+  # server.data["userinfo"]["language"]  = request.query_params.get("language")
+  if request.query_params.__contains__("username"):
+    server.data["userinfo"]["username"] = request.query_params.get("username")
+  if request.query_params.__contains__("age"):
+    server.data["userinfo"]["age"]  = request.query_params.get("age")
+  if request.query_params.__contains__("language"):
+    server.data["userinfo"]["language"]  = request.query_params.get("username")
+  server.save_data()
+  return Response(
+    data=server.data
+  )
 
 # -------------------------TMDB API Call ------------------------
 @api_view(['GET'])

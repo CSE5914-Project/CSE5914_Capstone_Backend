@@ -9,8 +9,33 @@ class TMDB_assistant():
         # genres_list: A dict, with two item: id and name, e.g. {"id": 35 "name": "Comedy"}
         self.genres_list = self.get_all_genres()   
 
-    # Referebce: 1) Selenium tutorial: https://www.youtube.com/watch?v=oM-yAjUGO-E 2) Session Object feature in Requests, https://requests.readthedocs.io/en/master/user/advanced/
+    def get_permissions_link(self):
+        query_str = "https://api.themoviedb.org/3/authentication/token/new?api_key=" +self.api_key
+        r = requests.get(query_str)
+        tmp_token = r.json()["request_token"]
+        url = "https://www.themoviedb.org/authenticate/"+tmp_token
+        return url, tmp_token
+    
     def create_user_session(self):
+        new_session_url =  "https://api.themoviedb.org/3/authentication/session/new?api_key="+self.api_key
+        payload = {
+            "request_token": tmp_token
+        }
+        response = requests.post(new_session_url, json=payload)
+        session_id = response.json()["session_id"]
+        return session_id
+
+    def create_guest_session(self):
+        url =  "https://api.themoviedb.org/3/authentication/guest_session/new?api_key="+self.api_key
+        r = requests.get(url)
+        json_data = r.json()
+        success = json_data["success"]
+        guest_session_id = json_data["guest_session_id"]
+        expires_at = json_data["expires_at"]
+        return success, guest_session_id, expires_at
+
+    # Referebce: 1) Selenium tutorial: https://www.youtube.com/watch?v=oM-yAjUGO-E 2) Session Object feature in Requests, https://requests.readthedocs.io/en/master/user/advanced/
+    def create_user_session_in_onestep(self):
         # Step1: Create a request token
         query_str = "https://api.themoviedb.org/3/authentication/token/new?api_key=" +self.api_key
         r = requests.get(query_str)
@@ -92,6 +117,7 @@ class TMDB_assistant():
         if result==None:
             print("Error in get_movie_avatar_link: poster_path doesn't exist!")
         path = "https://image.tmdb.org/t/p/w220_and_h330_face/" + result
+        # path = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/" + result
         # Example: https://image.tmdb.org/t/p/w220_and_h330_face/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg
         return (path)
 

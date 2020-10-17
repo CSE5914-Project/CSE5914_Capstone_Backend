@@ -23,7 +23,12 @@ urlpatterns = [
     path('api/hello/',views.hello,name='hello'),
     # path('',views.home,name='home'),
     path('api/reset_server/',views.reset_server,name='reset_server'),
+    path('api/get_permissions_link/',views.get_permissions_link,name='get_permissions_link'),
     path('api/create_user_session/',views.create_user_session,name='create_user_session'),
+    path('api/create_guest_session/',views.create_guest_session,name='create_guest_session'),
+    path('api/get_user_info/',views.get_user_info,name='get_user_info'),
+    path('api/update_user_info/',views.update_user_info,name='update_user_info'),
+    
     path('api/get_all_question/',views.get_all_question,name='get_all_question'),
     path('api/get_next_question/',views.get_next_question,name='get_next_question'),
     path('api/set_up_languages/',views.set_up_languages,name='set_up_languages'),
