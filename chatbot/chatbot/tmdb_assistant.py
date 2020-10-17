@@ -34,6 +34,18 @@ class TMDB_assistant():
         expires_at = json_data["expires_at"]
         return success, guest_session_id, expires_at
 
+    def create_a_list(self, session_id):
+        url =  "https://api.themoviedb.org/3/list?api_key="+self.api_key+"&session_id="+session_id
+        payload = {
+            "name": "This is my awesome test list.",
+            "description": "Just an awesome list dawg.",
+            "language": "en"
+        }
+        # header = {'Content-Type': 'application/json;charset=utf-8'}
+        response = requests.post(url, json=payload)
+        text = response.json()
+        print("Json data for post: ", text)
+
     # Referebce: 1) Selenium tutorial: https://www.youtube.com/watch?v=oM-yAjUGO-E 2) Session Object feature in Requests, https://requests.readthedocs.io/en/master/user/advanced/
     def create_user_session_in_onestep(self):
         # Step1: Create a request token

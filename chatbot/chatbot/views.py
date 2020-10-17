@@ -17,7 +17,7 @@ from . import tmdb_assistant
 import requests
 import json
 
-from . import utils
+# from . import utils
 
 robotResponse = []
 userResponse = []
@@ -40,13 +40,14 @@ class Server():
           'session_id': None,
           "guest_session_id": None,
           "expires_at": None
-        }
+        },
+        "movieList":TMDB_assistant.get_popular_movies(),
+        "favorite_list":{}
       }
-    self.guest_session_id = None
     self.serverState = 0
     self.total_quesitons = 3
     self.end_question = False
-    self.movieList = []
+    # self.movieList = []
     self.robot_question = [
     {
       "questionCode" : 1,
@@ -75,6 +76,7 @@ class Server():
 
   def reset_server(self):
     self.__init__()
+    self.save_data()
 
   # Update the serverState if there is question left, other wise return error!
   def get_next_question(self):
@@ -101,7 +103,7 @@ class Server():
     return robot_response
 
 
-# Set up Server
+# =================================== Set up Server
 server = Server()
 genre_list = TMDB_assistant.get_all_genres()
 server.set_genre_list(genre_list)
@@ -113,25 +115,60 @@ def reset_server(request):
     return Response(
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
-
+# =================================== MovieList management 
 @api_view(['GET'])
-def get_permissions_link(request):
-  url, server.data["tmp_token"] = TMDB_assistant.get_permissions_link()
+def get_current_favorite_list(request):
+  server.read_data()
   return Response(
-    data={"url": url, "tmp_token": server.data["tmp_token"]}
+    data={"favorite_list":server.data["favorite_list"]}
   )
 
 @api_view(['GET'])
+def remove_a_favorite_movie(request):
+  server.read_data()
+  movie_id= request.query_params["movie_id"]
+  server.data["favorite_list"].pop(movie_id)
+  print(server.data["favorite_list"])
+  server.save_data()
+  return Response(
+    data={"favorite_list":server.data["favorite_list"]}
+  )
+
+@api_view(['GET'])
+def add_a_favorite_movie(request):
+  server.read_data()
+  movie_id= request.query_params["movie_id"]
+  movie_json_obj = TMDB_assistant.get_movie_by_id(movie_id)
+  server.data["favorite_list"][movie_id] = movie_json_obj
+  server.save_data()
+  # server.data["favorite_list"].append(movie_json_obj)
+  return Response(
+    data={"favorite_list":server.data["favorite_list"]}
+  )
+
+# =================================== User Session management 
+@api_view(['GET'])
+def get_permissions_link(request):
+  # url, server.data["tmp_token"] = TMDB_assistant.get_permissions_link()
+  # return Response(
+  #   data={"url": url, "tmp_token": server.data["tmp_token"]}
+  # )
+  raise NotImplementedError
+
+@api_view(['GET'])
 def create_user_session(request):
-    server.data["userinfo"]["username"] = request.query_params["username"]
-    server.data["userinfo"]["age"]  = request.query_params["age"]
-    server.data["userinfo"]["language"]  = request.query_params["language"]
-    server.user_token, server.session_id = TMDB_assistant.create_user_session()
-    # You must open the browser, and grated the authentication within 5 sec in order to create the session.
-    server.save_data()
-    return Response(
-      data={"mesage":"User session created successfully!", "data":server.data["userinfo"]}
-    )
+    # server.data["userinfo"]["username"] = request.query_params["username"]
+    # server.data["userinfo"]["age"]  = request.query_params["age"]
+    # server.data["userinfo"]["language"]  = request.query_params["language"]
+    # server.user_token, server.session_id = TMDB_assistant.create_user_session()
+    # # You must open the browser, and grated the authentication within 5 sec in order to create the session.
+    # server.save_data()
+    # return Response(
+    #   data={"mesage":"User session created successfully!", 
+    #   "userinfo":server.data["userinfo"], 
+    #   "movieList":server.data["movieList"]}
+    # )
+    raise NotImplementedError
 
 @api_view(['GET'])
 def create_guest_session(request):
@@ -143,7 +180,7 @@ def create_guest_session(request):
     server.data["userinfo"]["guest_session_id"] = guest_session_id
     server.data["userinfo"]["expires_at"] = expires_at
     server.save_data()
-    data = {"message": "Guest session created successfully!", "data":server.data["userinfo"]}
+    data = {"message": "Guest session created successfully!", "userinfo":server.data["userinfo"], "favorite_list":server.data["favorite_list"], "movieList":server.data["movieList"]}
   else:
     data = {"message": "Error, Invalid API key: You must be granted a valid key."}
   return Response( 
@@ -154,7 +191,7 @@ def create_guest_session(request):
 def get_user_info(request):
   server.read_data()
   return Response(
-    data=server.data
+    data=server.data["userinfo"]
   )
 
 @api_view(['GET'])
@@ -168,11 +205,12 @@ def update_user_info(request):
   if request.query_params.__contains__("age"):
     server.data["userinfo"]["age"]  = request.query_params.get("age")
   if request.query_params.__contains__("language"):
-    server.data["userinfo"]["language"]  = request.query_params.get("username")
+    server.data["userinfo"]["language"]  = request.query_params.get("language")
   server.save_data()
   return Response(
-    data=server.data
+    data=server.data["userinfo"]
   )
+
 
 # -------------------------TMDB API Call ------------------------
 @api_view(['GET'])
@@ -187,8 +225,9 @@ def get_movie_by_id(request):
 # Return the first robot question and server.movieList to user interface
 @api_view(['GET'])
 def get_current_movie_list(request):
+    server.read_data()
     return Response(
-      data={"movieList": server.movieList}
+      data={"movieList": server.data["movieList"]}
     )
 
 @api_view(['GET'])
@@ -212,15 +251,14 @@ def get_movie_overview(request):
     data={"trailer": overview}
   )
 
-
 # Return one movie object
 @api_view(['GET'])
 def get_latest_movie(query):
   # Get the data from TMDB databases
   json_data = TMDB_assistant.get_latest_movie()
   # update the movie list
-  print(f"json_data {json_data}")
-  server.movieList = json_data
+  # print(f"json_data {json_data}")
+  # server.data["movieList"] = json_data
   return Response(
     data={"movieList": json_data}
   )
@@ -231,8 +269,8 @@ def get_upcoming_movie(request):
   # Get the data from TMDB databases
   json_data = TMDB_assistant.get_upcoming_movie(page)
   # update the movie list
-  print(f"json_data {json_data}")
-  server.movieList = json_data
+  # print(f"json_data {json_data}")
+  # server.movieList = json_data
   return Response(
     data={"movieList": json_data}
   )
@@ -254,7 +292,7 @@ def get_popular_movies(request):
   json_data = TMDB_assistant.get_popular_movies(top_n, page)
   # json_data = json.loads(json_data)
   # update the movie list
-  server.movieList = json_data
+  # server.movieList = json_data
   return Response(
     data={"movieList":json_data}
   )
@@ -267,9 +305,9 @@ def get_recommendation_for_movie(request):
   page = int(request.query_params['page'])
   print(f"movie_id: {movie_id}")
   movieList = TMDB_assistant.get_recommendation_for_movie(movie_id, page)
-  server.movieList = movieList
+  # server.movieList = movieList
   return Response(
-    data={"movieList": server.movieList}
+    data={"movieList": movieList}
   )
 
 @api_view(['GET'])
@@ -278,9 +316,9 @@ def get_similar_movies(request):
   page = int(request.query_params['page'])
   print(f"movie_id: {movie_id}")
   movieList = TMDB_assistant.get_similar_movies(movie_id, page)
-  server.movieList = movieList
+  # server.movieList = movieList
   return Response(
-    data={"movieList": server.movieList}
+    data={"movieList": movieList}
   )
 
 # -------------------IBM API Call --------------------

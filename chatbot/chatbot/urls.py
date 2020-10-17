@@ -20,22 +20,28 @@ from . import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/hello/',views.hello,name='hello'),
     # path('',views.home,name='home'),
     path('api/reset_server/',views.reset_server,name='reset_server'),
+# =================================== Nightly Testing
+    path('api/hello/',views.hello,name='hello'),
     path('api/get_permissions_link/',views.get_permissions_link,name='get_permissions_link'),
-    path('api/create_user_session/',views.create_user_session,name='create_user_session'),
+    path('api/create_user_session/',views.create_user_session,name='create_user_ses1sion'),
+# =================================== User Session management 
     path('api/create_guest_session/',views.create_guest_session,name='create_guest_session'),
     path('api/get_user_info/',views.get_user_info,name='get_user_info'),
     path('api/update_user_info/',views.update_user_info,name='update_user_info'),
-    
+# =================================== MovieList management     
+    path('api/get_current_movie_list/',views.get_current_movie_list,name='get_current_movie_list'),
+    path('api/remove_a_favorite_movie/',views.remove_a_favorite_movie,name='remove_a_favorite_movie'),
+    path('api/add_a_favorite_movie/',views.add_a_favorite_movie,name='add_a_favorite_movie'),
+    path('api/get_current_favorite_list/',views.get_current_favorite_list,name='get_current_favorite_list'),
+# --------------------------------IBM relevant request    -----------
     path('api/get_all_question/',views.get_all_question,name='get_all_question'),
     path('api/get_next_question/',views.get_next_question,name='get_next_question'),
     path('api/set_up_languages/',views.set_up_languages,name='set_up_languages'),
     path('api/post_answer/',views.post_answer,name='post_answer'),
     path('api/get_IBM_response/',views.get_IBM_response,name='get_IBM_response'),
 # --------------------------------Movie relevant request    -----------
-    path('api/get_current_movie_list/',views.get_current_movie_list,name='get_current_movie_list'),
     path('api/get_movie_by_id/',views.get_movie_by_id,name='get_movies'),
     path('api/get_movie_trailer_link/',views.get_movie_trailer_link,name='get_movie_trailer_link'),
     path('api/get_movie_overview/',views.get_movie_overview,name='get_movie_overview'),
