@@ -14,26 +14,33 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from django.http import JsonResponse
 from . import assistant
 from . import tmdb_assistant
+from . import translator
+
 import requests
 import json
 from enum import Enum
-class movieSource(Enum):
-  default = "popular"
-  byId =  "byId"
-  byGenere = "byGenere"
 
-# from . import utils
-
-robotResponse = []
-userResponse = []
-userQuestions = []
+# Set up IBM Chatbot API
 assistant = assistant.Assistant()
-
+# API For IBM translation
+API = {
+  "apikey": "pU-g-4CPjauoZBpVDEC58QMPfXxXl8R06EnmurtIb9QX",
+  "iam_apikey_description": "Auto-generated for key e159326d-147d-477f-8c72-fc2735135cb7",
+  "iam_apikey_name": "Auto-generated service credentials",
+  "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+  "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/1e0763c1010f4e268cfe0a32c0c9988f::serviceid:ServiceId-66e6b35d-3825-4d42-91c6-2f9139ca90eb",
+  "url": "https://api.us-south.language-translator.watson.cloud.ibm.com/instances/af931a5f-645c-43ee-a82d-2051dce96ed4"
+}
 
 # Set up TMDB_assistant
 api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
 TMDB_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
+
+class movieSource(Enum):
+  default = "popular"
+  byId =  "byId"
+  byGenere = "byGenere"
 
 class Server():
   def __init__(self):
@@ -58,9 +65,8 @@ class Server():
     self.serverState = 0
     self.total_quesitons = 3
     self.end_question = False
-    # self.movieList = []
-    self.robot_question = [
-    {
+    self.question_list = ["What language do you speak?",  "What genre would you like to watch?", "are you over 18?"]
+    self.robot_question = [{
       "questionCode" : 1,
       "questionString" : "What language do you speak?" 
     },{
@@ -69,8 +75,17 @@ class Server():
     },{
       "questionCode" : 3,
     "questionString" :  "are you over 18?"
-    }
-  ]
+    }]
+
+  def set_server_language_to(self, target_lang):
+    # Call the API to do the translation
+    msg = translator.translate(self.question_list, API, "en", target_lang)
+    # Get a list of translated questions
+    translations = [i['translation'] for i in json.loads(msg.text)['translations']]
+    # Reset the robot_question
+    self.robot_question = [{"questionCode": i, "questionString": q} for i,q in enumerate(translations)]
+    self.data["movieList"] = TMDB_assistant.get_popular_movies()
+
   def save_data(self):
     with open('data.txt', 'w') as outfile:
       json.dump(self.data, outfile)
@@ -126,6 +141,7 @@ def reset_server(request):
     return Response(
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
+
 
 # =================================== browser Status management 
 @api_view(['GET'])
@@ -209,10 +225,16 @@ def create_user_session(request):
 
 @api_view(['GET'])
 def create_guest_session(request):
+  # Get the data from user
   server.data["userinfo"]["username"] = request.query_params["username"]
   server.data["userinfo"]["age"]  = request.query_params["age"]
-  server.data["userinfo"]["language"]  = request.query_params["language"]
-  TMDB_assistant.language = request.query_params.get("language")
+  language  = request.query_params["language"]
+  # Reset the language for server, and other APIs (if user speak other language than English)
+  if language != "en":
+    server.data["userinfo"]["language"] = language
+    TMDB_assistant.language = language
+    server.set_server_language_to(language)
+  # Create a session for new user
   success, guest_session_id, expires_at = TMDB_assistant.create_guest_session()
   if success:
     server.data["userinfo"]["guest_session_id"] = guest_session_id
@@ -221,9 +243,10 @@ def create_guest_session(request):
     data = {"message": "Guest session created successfully!", "userinfo":server.data["userinfo"], "favorite_list":server.data["favorite_list"], "movieList":server.data["movieList"]}
   else:
     data = {"message": "Error, Invalid API key: You must be granted a valid key."}
+  
   return Response( 
-    data=data
-  )
+      data=data
+    )
 
 @api_view(['GET'])
 def get_user_info(request):
@@ -421,25 +444,21 @@ def post_answer(request):
         # Get response from IBM assistant:
         assistant.create_session()
         user_answer = assistant.ask_assistant(user_answer)
-        # print(f"user_answer: {user_answer}")
         # Search genre id based on user input:
         user_answer = user_answer.capitalize()  # some query preprocessing
         # user_answer = "Action"
+
+        # Checking whether the requested genere supported by TMDB
         gener_list = server.get_genre_list()  # Update the genre list in server object
         exist = False # whether there is requested genre in TMDB database
         # print(f"gener_list: {gener_list}")
         gener_id = 0
-
         for item in gener_list:
           genre_type = item['name']
-          # print(f"item: {item}")
-          # print(f"genre_type: {genre_type}, type: {type(genre_type)}")
           if genre_type == user_answer:
             gener_id = item["id"]
             exist = True
-            # Store genre
             server.user_genre = gener_id
-            # print(f"Found genre_id: {gener_id}")
 
         # Update the robot_response 
         if exist:
@@ -449,6 +468,9 @@ def post_answer(request):
         # Update the movieList
         server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
         assistant.end_session()
+
+        # Convert the robot_response according to the language user speaks
+        robot_response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
         )
