@@ -439,14 +439,16 @@ def post_answer(request):
     elif request.method == 'GET':
         user_answer = request.query_params["answerText"]
         page = int(request.query_params['page'])
-        # print(f"user_answer: {user_answer}")
 
         # Get response from IBM assistant:
         assistant.create_session()
+        if server.data["userinfo"]["language"] != "en":
+          # print(f"user_answer: {user_answer}")
+          response = translator.translate([user_answer], API, server.data["userinfo"]["language"], "en")
+          user_answer = response.json()['translations'][0]['translation']
+          # print(f"user_answer: {user_answer}, type: {type(user_answer)}")
         user_answer = assistant.ask_assistant(user_answer)
-        # Search genre id based on user input:
-        user_answer = user_answer.capitalize()  # some query preprocessing
-        # user_answer = "Action"
+        user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
 
         # Checking whether the requested genere supported by TMDB
         gener_list = server.get_genre_list()  # Update the genre list in server object
@@ -465,12 +467,15 @@ def post_answer(request):
           robot_response = f"Found you requested genre {user_answer} with id {gener_id}"
         else:
           robot_response = "Error, we don't have the result you are asking!"
+
         # Update the movieList
         server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
         assistant.end_session()
 
         # Convert the robot_response according to the language user speaks
-        robot_response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+        response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+        robot_response = response.json()['translations'][0]['translation']
+
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
         )

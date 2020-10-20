@@ -179,7 +179,7 @@ class TMDB_assistant():
                 a list of top_n movie, each movie is constructed with a dictionary, e.g., 
                 {'popularity': 2699.389, 'vote_count': 0, 'video': False, 'poster_path': '/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg', 'id': 694919, 'adult': False, 'backdrop_path': '/9Y12EdkIVvYir3uTcZGjqfXWBUv.jpg', 'original_language': 'en', 'original_title': 'Money Plane', 'genre_ids': [28], 'title': 'Money Plane', 'vote_average': 0, 'overview': "A professional thief with $40 million in debt and his family's life on the line must commit one final heist - rob a futuristic airborne casino filled with the world's most dangerous criminals.", 'release_date': '2020-09-29'}
         """
-        query_url = "https://api.themoviedb.org/3/movie/popular?api_key="+discover_moviesself.api_key +"&language="+self.language+"&page="+str(page)
+        query_url = "https://api.themoviedb.org/3/movie/popular?api_key="+self.api_key +"&language="+self.language+"&page="+str(page)
         response = requests.get(query_url)
         json_data = response.json()
         # Extract 10 movie from response:
