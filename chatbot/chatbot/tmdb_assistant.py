@@ -134,7 +134,7 @@ class TMDB_assistant():
         return (path)
 
     def get_movie_trailer_link(self, movie_id):
-        url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language="+self.language
+        url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language=en"
         r = requests.get(url)
         json_data = r.json()
         key = json_data.get("results")[0].get("key")
