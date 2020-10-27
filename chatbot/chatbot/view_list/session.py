@@ -15,7 +15,7 @@ import json
 
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_session(request):
     print(request.session.items())
     response_data = {"session":request.session}
