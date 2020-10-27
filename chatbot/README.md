@@ -29,3 +29,6 @@ pip install -r requirements.txt
 Running server with command: 
 python manage.py runserver
 
+Make model change on database:
+python manage.py makemigrations
+python manage.py migrate --run-syncdb

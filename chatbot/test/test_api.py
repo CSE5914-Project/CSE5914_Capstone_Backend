@@ -19,10 +19,20 @@ def test_post_answer1():
     # 
     print(f"User answer: {r.json()}")
 
+
+def test_post_create_user1():
+    data={'name':'hs', 'email': "123@gmail.com", 'password': "sdfdsfsdfs"}
+    r = requests.post("http://127.0.0.1:8000/api/user/create_user", data=data)
+    # 
+    print(f"User answer: {r.json()}")
+
+
 def get_top_n_popular_movie():
     pass
 
 if __name__ == '__main__':
-    test_get_movies1()
-    test_get_question1()
-    test_post_answer1()
+    # test_get_movies1()
+    # test_get_question1()
+    # test_post_answer1()
+
+    test_post_create_user1()

@@ -85,7 +85,7 @@ class Server():
 server = Server()
 genre_list = TMDB_assistant.get_all_genres()
 server.set_genre_list(genre_list)
-
+print(server.movieList)
 # Return the first robot questions to user interface
 @api_view(['GET'])
 def reset_server(request):

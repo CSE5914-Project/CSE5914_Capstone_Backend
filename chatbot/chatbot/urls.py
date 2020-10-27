@@ -15,8 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls import include
 
 from . import views
+from .view_list import user
+from .view_list.session import *
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,4 +42,10 @@ urlpatterns = [
     path('api/get_upcoming_movie/',views.get_upcoming_movie,name='get_upcoming_movie'),
     path('api/get_similar_movies/',views.get_similar_movies,name='get_similar_movies'),
     path('api/get_recommendation_for_movie/',views.get_recommendation_for_movie,name='get_recommendation_for_movie'),
+
+# --------------------------------Movie relevant request    -----------
+    path('accounts/', include('django.contrib.auth.urls')),
+    path('api/user/create_user',user.create_user,name='create_user'),
+
+# --------------------------------Session test --------------------
 ]
