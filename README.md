@@ -24,7 +24,7 @@ API
 ## Q&A
 - How to syn the package with requirements.txt:
   ```
-  pip install -r requirements.txts
+  pip install -r requirements.txt
   ```
 - How to run the server
   ```
