@@ -429,8 +429,11 @@ def post_answer(request):
     # If the request 'Get' method, the next reuqestion and current movieList will be returned
     if request.method == 'POST':
       return Response(
-        data=[server.get_next_question(),
-            {"movieList": server.movieList}]
+        # return the next question along with the current movie list
+        data=[
+          server.get_next_question(),
+            {"movieList": server.movieList}
+          ]
       )
 
     # If the request 'POST' method, the robot_response and the updated movieList will be returned
