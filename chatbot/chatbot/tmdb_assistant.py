@@ -46,6 +46,20 @@ class TMDB_assistant():
         text = response.json()
         print("Json data for post: ", text)
 
+    def rate_a_movie(self, movie_id, session_id, rating_value):
+        url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/rating?api_key="+self.api_key+"&guest_session_id="+session_id
+        payload = {
+            "value": rating_value
+            }
+        # header = {'Content-Type': 'application/json;charset=utf-8'}
+        response = requests.post(url, json=payload)
+        json_data = response.json()
+        return json_data
+
+    def add_to_watchlist(self):
+        raise NotImplementedError
+
+
     # Referebce: 1) Selenium tutorial: https://www.youtube.com/watch?v=oM-yAjUGO-E 2) Session Object feature in Requests, https://requests.readthedocs.io/en/master/user/advanced/
     def create_user_session_in_onestep(self):
         # Step1: Create a request token
@@ -145,7 +159,6 @@ class TMDB_assistant():
         # movie_title = movie_title.lower().strip().replace(" ", "-")
         # path = root_path + str(movie_id) + "-" + movie_title + "#play=" + key
         path = "https://www.youtube.com/watch?v="+key+"&feature=emb_title"
-
         # https://www.youtube.com/watch?v=aETz_dRDEys&feature=emb_title
         # https://www.themoviedb.org/movie/694919-money-plane#play=aETz_dRDEys
         # https://www.themoviedb.org/movie/734309-santana#play=CdkxJ8BD0EI
@@ -164,7 +177,14 @@ class TMDB_assistant():
             print("Error in is_adult_movie: adult doesn't exist!")
         return result
 
-    # ------------------------------------API call ---------------------
+    # ------------------------------------TMDB API call ---------------------
+    # Reference: https://developers.themoviedb.org/3/search/search-keywords
+    def search_movie_by_keyword(self, keyword, page=1):
+        query_url = "https://api.themoviedb.org/3/search/keyword?api_key="+self.api_key+"&query="+keyword+"&page="+str(page)
+        response = requests.get(query_url)    # Get response message
+        json_data = response.json()
+        return json_data
+
     def get_movie_by_id(self, movie_id:int):
         query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"?api_key="+self.api_key
         response = requests.get(query_url)    # Get response message

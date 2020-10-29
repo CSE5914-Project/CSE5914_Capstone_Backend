@@ -128,7 +128,6 @@ class Server():
     assistant.end_session()
     return robot_response
 
-
 # =================================== Set up Server
 server = Server()
 genre_list = TMDB_assistant.get_all_genres()
@@ -175,6 +174,7 @@ def get_current_favorite_list(request):
   return Response(
     data={"favorite_list":server.data["favorite_list"]}
   )
+
 
 @api_view(['GET'])
 def remove_a_favorite_movie(request):
@@ -275,6 +275,16 @@ def update_user_info(request):
 
 
 # -------------------------TMDB API Call ------------------------
+# Return one or more movie json objects based on given query keyword
+@api_view(['GET'])
+def search_movie_by_keyword(request):
+    keyword = request.query_params["keyword"]
+    page = request.query_params["page"]
+    json_data = TMDB_assistant.search_movie_by_keyword(keyword, page)
+    return Response(
+      data={"movieList": json_data}
+    )
+
 @api_view(['GET'])
 def get_movie_by_id(request):
     movie_id = request.query_params["movie_id"]
