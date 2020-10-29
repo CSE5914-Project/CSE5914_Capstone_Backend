@@ -72,11 +72,11 @@ class Server():
     }
   ]
   def save_data(self):
-    with open('data.txt', 'w') as outfile:
+    with open('../data.txt', 'w') as outfile:
       json.dump(self.data, outfile)
 
   def read_data(self):
-    with open('data.txt', 'r') as outfile:
+    with open('../data.txt', 'r') as outfile:
       self.data = json.load(outfile)
 
   def set_genre_list(self, genre_list):
