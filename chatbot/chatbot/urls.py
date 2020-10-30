@@ -45,7 +45,7 @@ urlpatterns = [
 
 # --------------------------------Movie relevant request    -----------
     path('accounts/', include('django.contrib.auth.urls')),
-    path('api/user/create_user',user.create_user,name='create_user'),
-
+    path('api/user/create_user/',user.create_user,name='create_user'),
+    path('accounts/signup/', user.SignUpView.as_view() , name='signup')
 # --------------------------------Session test --------------------
 ]

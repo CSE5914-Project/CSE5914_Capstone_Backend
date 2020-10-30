@@ -17,10 +17,10 @@ API
 ### TODO
 #### timebox 2
 + [x] Basic API
-+ [ ] Movie Model
-+ [ ] User Model
-+ [ ] Implement Session
-
++ [x] Movie Model
++ [x] User Model
++ [x] Implement Session
++ [ ] Test
 ## Q&A
 - How to syn the package with requirements.txt:
   ```

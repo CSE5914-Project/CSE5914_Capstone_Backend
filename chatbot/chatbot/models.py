@@ -1,10 +1,10 @@
 from django.db import models
+from django.contrib.auth.models import User
 
-
-class Person(models.Model):
-    name = models.CharField(max_length=30)
-    email = models.EmailField(max_length=100,primary_key=True)
-    password = models.CharField(max_length=512)
+# class Person(models.Model):
+#     name = models.CharField(max_length=30)
+#     email = models.EmailField(max_length=100,primary_key=True)
+#     password = models.CharField(max_length=512)
 
 
 class Movie(models.Model):
@@ -17,7 +17,7 @@ class Like(models.Model):
     like_id = models.AutoField(primary_key=True)
     
     user_ptr = models.OneToOneField(
-        Person, on_delete=models.CASCADE,
+        User, on_delete=models.CASCADE,
         parent_link=True,
     )
 
