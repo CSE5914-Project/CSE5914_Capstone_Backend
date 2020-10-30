@@ -7,7 +7,91 @@ class TMDB_assistant():
         self.api_key = api_key
         self.language = language
         # genres_list: A dict, with two item: id and name, e.g. {"id": 35 "name": "Comedy"}
-        self.genres_list = self.get_all_genres()   
+        genres_list = self.get_all_genres()   
+
+    def get_permissions_link(self):
+        query_str = "https://api.themoviedb.org/3/authentication/token/new?api_key=" +self.api_key
+        r = requests.get(query_str)
+        tmp_token = r.json()["request_token"]
+        url = "https://www.themoviedb.org/authenticate/"+tmp_token
+        return url, tmp_token
+    
+    # def create_user_session(self):
+    #     new_session_url =  "https://api.themoviedb.org/3/authentication/session/new?api_key="+self.api_key
+    #     payload = {
+    #         "request_token": tmp_token
+    #     }
+    #     response = requests.post(new_session_url, json=payload)
+    #     session_id = response.json()["session_id"]
+    #     return session_id
+
+    def create_guest_session(self):
+        url =  "https://api.themoviedb.org/3/authentication/guest_session/new?api_key="+self.api_key
+        r = requests.get(url)
+        json_data = r.json()
+        success = json_data["success"]
+        guest_session_id = json_data["guest_session_id"]
+        expires_at = json_data["expires_at"]
+        return success, guest_session_id, expires_at
+
+    def create_a_list(self, session_id):
+        url =  "https://api.themoviedb.org/3/list?api_key="+self.api_key+"&session_id="+session_id
+        payload = {
+            "name": "This is my awesome test list.",
+            "description": "Just an awesome list dawg.",
+            "language": "en"
+        }
+        # header = {'Content-Type': 'application/json;charset=utf-8'}
+        response = requests.post(url, json=payload)
+        text = response.json()
+        print("Json data for post: ", text)
+
+    # Referebce: 1) Selenium tutorial: https://www.youtube.com/watch?v=oM-yAjUGO-E 2) Session Object feature in Requests, https://requests.readthedocs.io/en/master/user/advanced/
+    def create_user_session_in_onestep(self):
+        # Step1: Create a request token
+        query_str = "https://api.themoviedb.org/3/authentication/token/new?api_key=" +self.api_key
+        r = requests.get(query_str)
+        # This is a temporary token that is required to ask the user for permission to access their account. This token will auto expire after 60 minutes if it's not used.
+        tmp_token = r.json()["request_token"]     # get json object
+        print(r.json())
+        print(tmp_token)
+        # Step2: Ask the user for permission
+        # 1) With a request token in hand, forward your user to the following URL: https://www.themoviedb.org/authenticate/{REQUEST_TOKEN}
+        # 2) You can also pass this URL a redirect_to parameter, ie: https://www.themoviedb.org/authenticate/{REQUEST_TOKEN}?redirect_to=http://www.yourapp.com/approved
+        # Get a list of genres for movies
+        import webbrowser
+        import time
+        from selenium import webdriver
+        from selenium.webdriver.common.keys import Keys
+        url = "https://www.themoviedb.org/authenticate/"+tmp_token
+        # driver = webdriver.Chrome()
+        # driver.get(url)
+        # driver.implicitly_wait(10) # seconds
+        # driver.quit()
+
+        time.sleep(5)
+        webbrowser.open_new_tab(url)
+        # query_url = "https://www.themoviedb.org/authenticate/"+tmp_token+"allow"
+        # r = requests.get(query_url)
+        # # json_data = r.json()
+        # print("json_data = response.json(): ", r.headers)
+
+        # Step 3: Create a new sesion_id with the authorized request token
+        new_session_url =  "https://api.themoviedb.org/3/authentication/session/new?api_key="+self.api_key
+        payload = {
+            "request_token": tmp_token
+        }
+        # header = {'Content-Type': 'application/json;charset=utf-8', 'Authorization': 'Bearer ' + tmp_token}
+        response = requests.post(new_session_url, json=payload)
+        # Get the json data
+        text = response.json()
+        print("Json data for post: ", text)
+        # Display the session ID
+        session_id = response.json()["session_id"]
+        print("The session ID: ", session_id)
+
+        return tmp_token, session_id
+
 
     # Get the list of official genres for movies
     def get_all_genres(self):
@@ -45,11 +129,12 @@ class TMDB_assistant():
         if result==None:
             print("Error in get_movie_avatar_link: poster_path doesn't exist!")
         path = "https://image.tmdb.org/t/p/w220_and_h330_face/" + result
+        # path = "https://image.tmdb.org/t/p/w600_and_h900_bestv2/" + result
         # Example: https://image.tmdb.org/t/p/w220_and_h330_face/6CoRTJTmijhBLJTUNoVSUNxZMEI.jpg
         return (path)
 
     def get_movie_trailer_link(self, movie_id):
-        url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language="+self.language
+        url = "https://api.themoviedb.org/3/movie/" + str(movie_id) +"/videos?api_key="+self.api_key+"&language=en"
         r = requests.get(url)
         json_data = r.json()
         key = json_data.get("results")[0].get("key")
@@ -113,7 +198,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, sort_by="popularity.desc", gener_id="28"):
+    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -123,7 +208,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres="+str(gener_id)
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -171,9 +256,11 @@ class TMDB_guest_session(TMDB_assistant):
 if __name__ == '__main__':
     api_key="02834833a9dfe29dc2c55eb707c5a73c"
     TMDB_assistant = TMDB_assistant(api_key, "en-US")
-    print(type(TMDB_assistant))
+    # tmp_token = TMDB_assistant.create_user_session()
+
+    # print(type(TMDB_assistant))
 # Test get_popular_movie
-    print("Testing: get_popular_movies")
+    # print("Testing: get_popular_movies")
     top_n = 10
     top_n_list = TMDB_assistant.get_popular_movies(top_n)
     print(type(top_n_list))
@@ -192,7 +279,7 @@ if __name__ == '__main__':
 
 # Test discover_movies:
     print("Testing: discover_movies based on given genre")
-    movie_list = TMDB_assistant.discover_movies(28)
+    movie_list = TMDB_assistant.discover_movies(page=100, gener_id=28)
     print(movie_list)
 
 # Test get_movie_by_id 
