@@ -18,6 +18,7 @@ from . import translator
 
 import requests
 import json
+import os
 from enum import Enum
 
 # Set up IBM Chatbot API
@@ -44,6 +45,7 @@ class movieSource(Enum):
 
 class Server():
   def __init__(self):
+    self.curr_dir = "data"
     self.user_genre = None
     self.data = {
         "userinfo":{
@@ -86,12 +88,15 @@ class Server():
     self.robot_question = [{"questionCode": i, "questionString": q} for i,q in enumerate(translations)]
     self.data["movieList"] = TMDB_assistant.get_popular_movies()
 
-  def save_data(self):
-    with open('data.txt', 'w') as outfile:
+  def save_data(self, username):
+    data_path = os.path.join(self.curr_dir, username+".json")
+    print(data_path)
+    with open(data_path, 'w') as outfile:
       json.dump(self.data, outfile)
 
-  def read_data(self):
-    with open('data.txt', 'r') as outfile:
+  def read_data(self, username):
+    data_path = os.path.join(self.curr_dir, username+".json")
+    with open(data_path, 'r') as outfile:
       self.data = json.load(outfile)
 
   def set_genre_list(self, genre_list):
@@ -102,7 +107,7 @@ class Server():
 
   def reset_server(self):
     self.__init__()
-    self.save_data()
+    # self.save_data()
 
   # Update the serverState if there is question left, other wise return error!
   def get_next_question(self):
@@ -133,7 +138,9 @@ server = Server()
 genre_list = TMDB_assistant.get_all_genres()
 server.set_genre_list(genre_list)
 
-# Return the first robot questions to user interface
+# Note: Due to some frontend issue, the POST call is not able to use, so we change all the API calls to GET requests. But we added note in front of function to indicate the function that involves server status update
+
+# POST: reset the server status, clean all data (But not the database, including the userinfo..)
 @api_view(['GET'])
 def reset_server(request):
     server.reset_server()
@@ -141,7 +148,31 @@ def reset_server(request):
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
 
+# Need username as param
+@api_view(['GET'])
+def user_login(request):
+  # What is the user name?
+  username = request.query_params["username"]
+  server.read_data(username)
+  if username == server.data["userinfo"]["username"]:
+    response = username + " Log in successfully!"
+  else:
+    response = "Error, user doesn't exist!'"
+  return Response(
+    data= response
+  )
 
+@api_view(['GET'])
+def user_logout(request):
+  # What is the user name?
+  username = server.data["userinfo"]["username"]
+  server.save_data(username)
+  server.reset_server()
+  return Response(
+    data= username + " Logoff!"
+  )
+
+# Note: Those functions are used for the purpose of restoring browser status after user last visit
 # =================================== browser Status management 
 @api_view(['GET'])
 def get_browser_status(request):
@@ -149,57 +180,83 @@ def get_browser_status(request):
     data={"browser_status":server.data["browser_status"] }
   )
 
+# Need username as param
+# POST: update the last movie that user visited, involves server update
 @api_view(['GET'])
 def update_last_movie_id(request):
   server.data["browser_status"]["movieSource"] = movieSource.byId.value
   server.data["browser_status"]["lastMovieId"]= request.query_params["lastMovieId"]
-  server.save_data()
+  username = server.data["userinfo"]["username"]
+
+  server.save_data(username)
   return Response(
     data={"browser_status":server.data["browser_status"] }
   )
 
+# Need username as param
+# POST: update the last genre that user requested, involves server update
 @api_view(['GET'])
 def update_last_genere_text(request):
   server.data["browser_status"]["movieSource"] = movieSource.byGenere.value
   server.data["browser_status"]["lastGenreText"]= request.query_params["lastGenreText"]
-  server.save_data()
+  username = server.data["userinfo"]["username"]
+
+  server.save_data(username)
   return Response(
     data={"browser_status":server.data["browser_status"] }
   )
 
+# Here are a list of methods for managing the movielist, e.g. favoriated_movie list, watched_movie list
 # =================================== MovieList management 
 @api_view(['GET'])
 def get_current_favorite_list(request):
-  server.read_data()
+  # Whose favorite_list you want to get?
   return Response(
     data={"favorite_list":server.data["favorite_list"]}
   )
 
-
+# POST: remove a favorite movie from particular user's list, involves server update
 @api_view(['GET'])
 def remove_a_favorite_movie(request):
-  server.read_data()
+  # what is the movie we want to remove
   movie_id= request.query_params["movie_id"]
   server.data["favorite_list"].pop(movie_id)
-  print(server.data["favorite_list"])
-  server.save_data()
+  # print(server.data["favorite_list"])
+
+  username = server.data["userinfo"]["username"]
+  server.save_data(username)
   return Response(
-    data={"favorite_list":server.data["favorite_list"]}
+    data={
+      "message": str(movie_id)+" removed!",
+      "Current favorite_list": server.data["favorite_list"]
+      }
   )
 
 @api_view(['GET'])
 def add_a_favorite_movie(request):
-  server.read_data()
+  # Who is your target user?
+  username = server.data["userinfo"]["username"]
+  # what is the movie you want to add to the list?
   movie_id= request.query_params["movie_id"]
   movie_json_obj = TMDB_assistant.get_movie_by_id(movie_id)
   server.data["favorite_list"][movie_id] = movie_json_obj
-  server.save_data()
   # server.data["favorite_list"].append(movie_json_obj)
+
+  server.save_data(username)
   return Response(
-    data={"favorite_list":server.data["favorite_list"]}
+    data={
+      "message": str(movie_id)+" added!",
+      "Current favorite_list": server.data["favorite_list"]
+      }
   )
 
 # =================================== User Session management 
+# [To-Do] 10/29: For implementing multiuser function, we need to:
+  # - Save all user related data(e.g. info, movie, browser status) for the call that related user data update, e.g. 1) update_user_info, 2) add_a_favorite_movie， etc
+  # - 需要做一个交restore_user_session的接口，然后你切换用户时，要给我他的名字，如果他名字不在database里的话，我就return error； Otherwise， 就直接把server里的数据都跟新了
+
+# [To-Do] 10/29: Adult movie filtering, whenever the frontend made a movie request, we need to do some filtering process, and only allow valid movie to pass through ==> But the filtering result is same as we implemented this at frontend where we might have less than 20 movie objects to display.
+
 @api_view(['GET'])
 def get_permissions_link(request):
   # url, server.data["tmp_token"] = TMDB_assistant.get_permissions_link()
@@ -226,53 +283,61 @@ def create_user_session(request):
 @api_view(['GET'])
 def create_guest_session(request):
   # Get the data from user
-  server.data["userinfo"]["username"] = request.query_params["username"]
+  username = server.data["userinfo"]["username"] = request.query_params["username"]
   server.data["userinfo"]["age"]  = request.query_params["age"]
   language  = request.query_params["language"]
+  
   # Reset the language for server, and other APIs (if user speak other language than English)
   if language != "en":
     server.data["userinfo"]["language"] = language
     TMDB_assistant.language = language
     server.set_server_language_to(language)
+  
   # Create a session for new user
   success, guest_session_id, expires_at = TMDB_assistant.create_guest_session()
   if success:
     server.data["userinfo"]["guest_session_id"] = guest_session_id
     server.data["userinfo"]["expires_at"] = expires_at
-    server.save_data()
-    data = {"message": "Guest session created successfully!", "userinfo":server.data["userinfo"], "favorite_list":server.data["favorite_list"], "movieList":server.data["movieList"]}
+    server.save_data(username)
+    data = {
+      "message": "Guest session created successfully!", "userinfo":server.data["userinfo"], "favorite_list":server.data["favorite_list"], "movieList":server.data["movieList"]
+      }
   else:
     data = {"message": "Error, Invalid API key: You must be granted a valid key."}
-  
   return Response( 
       data=data
     )
 
 @api_view(['GET'])
 def get_user_info(request):
-  server.read_data()
+  # Who is your target user?
+  # username = request.query_params["username"]
+  # username = server.data["userinfo"]["username"]
+  # server.read_data(username)
   return Response(
     data=server.data["userinfo"]
   )
 
+# Need username as param
+# Update user info: name, age, and language
 @api_view(['GET'])
 def update_user_info(request):
-  server.read_data()
+  username = request.query_params["username"]
+  # server.read_data(username)
   # server.data["userinfo"]["username"] = request.query_params.get("username")
   # server.data["userinfo"]["age"]  = request.query_params.get("age")
   # server.data["userinfo"]["language"]  = request.query_params.get("language")
-  if request.query_params.__contains__("username"):
-    server.data["userinfo"]["username"] = request.query_params.get("username")
+  # if request.query_params.__contains__("username"):
+  #   server.data["userinfo"]["username"] = request.query_params.get("username")
   if request.query_params.__contains__("age"):
     server.data["userinfo"]["age"]  = request.query_params.get("age")
   if request.query_params.__contains__("language"):
     server.data["userinfo"]["language"]  = request.query_params.get("language")
     TMDB_assistant.language = request.query_params.get("language")
-  server.save_data()
+  server.save_data(username)
   return Response(
     data=server.data["userinfo"]
   )
-
 
 # -------------------------TMDB API Call ------------------------
 # Return one or more movie json objects based on given query keyword

@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # path('',views.home,name='home'),
     path('api/reset_server/',views.reset_server,name='reset_server'),
+    path('api/user_login/',views.user_login,name='user_login'),
+    path('api/user_logout/',views.user_logout,name='user_logout'),
 # =================================== Nightly Testing
     path('api/hello/',views.hello,name='hello'),
     path('api/get_permissions_link/',views.get_permissions_link,name='get_permissions_link'),
