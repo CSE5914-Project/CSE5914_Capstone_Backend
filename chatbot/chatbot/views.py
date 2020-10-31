@@ -154,6 +154,7 @@ def user_login(request):
   # What is the user name?
   username = request.query_params["username"]
   server.read_data(username)
+  # If the username doesn't exist, server will return None (as default)
   if username == server.data["userinfo"]["username"]:
     response = username + " Log in successfully!"
   else:
