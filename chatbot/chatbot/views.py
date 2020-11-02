@@ -324,7 +324,7 @@ def get_user_info(request):
 # Update user info: name, age, and language
 @api_view(['GET'])
 def update_user_info(request):
-  username = request.query_params["username"]
+  username = server.data["userinfo"]["username"] = request.query_params.get("username")
   # server.read_data(username)
   # server.data["userinfo"]["username"] = request.query_params.get("username")
   # server.data["userinfo"]["age"]  = request.query_params.get("age")
@@ -506,10 +506,16 @@ def post_answer(request):
     """
     # If the request 'Get' method, the next reuqestion and current movieList will be returned
     if request.method == 'POST':
+      question = server.get_next_question()
+      # if the user don't speak english, convert to corresponding one
+      if server.data["userinfo"]["language"] != "en":
+        response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
+        # print(response.json())
+        translated_question = response.json()['translations'][0]['translation']
       return Response(
         # return the next question along with the current movie list
         data=[
-          server.get_next_question(),
+            translated_question,
             {"movieList": server.movieList}
           ]
       )
@@ -518,21 +524,22 @@ def post_answer(request):
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
     elif request.method == 'GET':
+        # Step1: Get user's response, and the page info to searching corresponding genre movies
         user_answer = request.query_params["answerText"]
         page = int(request.query_params['page'])
 
-        # Get response from IBM assistant:
+        # Step2: Get response from IBM assistant:
         assistant.create_session()
+        # If user don't speak english, we need to convert it to en, in order to processing the 'genre' keyword filtering
         if server.data["userinfo"]["language"] != "en":
           # print(f"user_answer: {user_answer}")
           response = translator.translate([user_answer], API, server.data["userinfo"]["language"], "en")
           user_answer = response.json()['translations'][0]['translation']
-          # print(f"user_answer: {user_answer}, type: {type(user_answer)}"
-          
+        # Use IBM assistant to get the genre keywords 
         user_answer = assistant.ask_assistant(user_answer)
         user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
 
-        # Checking whether the requested genere supported by TMDB
+        # Step3: Checking whether the requested genere supported by TMDB. if requested genre doesn't exist, return a error response message
         gener_list = server.get_genre_list()  # Update the genre list in server object
         exist = False # whether there is requested genre in TMDB database
         # print(f"gener_list: {gener_list}")
@@ -543,21 +550,18 @@ def post_answer(request):
             gener_id = item["id"]
             exist = True
             server.user_genre = gener_id
-
         # Update the robot_response 
         if exist:
           robot_response = f"Found you requested genre {user_answer} with id {gener_id}"
+          # Update the movieList
+          server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
+          assistant.end_session()
         else:
           robot_response = "Error, we don't have the result you are asking!"
 
-        # Update the movieList
-        server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
-        assistant.end_session()
-
-        # Convert the robot_response according to the language user speaks
-        # response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
-        # print(response.json())
-        # robot_response = response.json()['translations'][0]['translation']
+        # Step4: Convert and return the robot_response according to the language user speaks
+        response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+        robot_response = response.json()['translations'][0]['translation']
 
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
