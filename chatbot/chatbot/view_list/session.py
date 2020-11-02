@@ -19,7 +19,7 @@ import json
 @api_view(['GET'])
 def get_session(request):
     print(request.session.items())
-    response_data = {"session":request.session}
+    response_data = get_session_ours(request.session.get("user_id",""))
     return response(data=response_data)
 
 @api_view(['POST'])
@@ -43,6 +43,7 @@ def save_session(request):
         return HttpResponseBadRequest()
     response_data = {"session":request.session}
     # clear session
+
     request.session.flush()
     return response(data=response_data)
 
@@ -70,8 +71,9 @@ def save_session_ours(session):
 def get_session_ours(user_id):
     session = {}
     try:
-        user_id = session['user_id']
-        liked_movies = session['liked_movies']
+        # user_id = session['user_id']
+        liked_movies = Like.filter(user_id=user_id)
+        movie_list = [liked_movies[i].movie_id for i in range(liked_movies.count())]
 
         for movie in liked_movies:
             tgt = Movie.objects.filter(pk=movie)
@@ -86,7 +88,7 @@ def get_session_ours(user_id):
         
         return {}
 
-    return {}
+    return {'user_id':user_id,"liked_movies":}
     
     # response_data = {"session":request.session}
     # # clear session

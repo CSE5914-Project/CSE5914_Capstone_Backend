@@ -63,6 +63,8 @@ urlpatterns = [
 # --------------------------------Movie relevant request    -----------
     path('accounts/', include('django.contrib.auth.urls')),
     path('api/user/create_user/',user.create_user,name='create_user'),
-    path('accounts/signup/', user.SignUpView.as_view() , name='signup')
+    path('accounts/signup/', user.SignUpView.as_view() , name='signup'),
+    path('accounts/get_session/', session.get_session , name='get_session'),
+    path('accounts/save_session/', session.save_session , name='save_session'),
 # --------------------------------Session test --------------------
 ]
