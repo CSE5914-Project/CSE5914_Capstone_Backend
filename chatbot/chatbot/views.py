@@ -96,6 +96,7 @@ class Server():
 
   def read_data(self, username):
     data_path = os.path.join(self.curr_dir, username+".json")
+
     with open(data_path, 'r') as outfile:
       self.data = json.load(outfile)
 
@@ -363,7 +364,8 @@ def get_movie_by_id(request):
 # Return the first robot question and server.movieList to user interface
 @api_view(['GET'])
 def get_current_movie_list(request):
-    server.read_data()
+    username = server.data["userinfo"]["username"]
+    server.read_data(username)
     return Response(
       data={"movieList": server.data["movieList"]}
     )
@@ -525,7 +527,8 @@ def post_answer(request):
           # print(f"user_answer: {user_answer}")
           response = translator.translate([user_answer], API, server.data["userinfo"]["language"], "en")
           user_answer = response.json()['translations'][0]['translation']
-          # print(f"user_answer: {user_answer}, type: {type(user_answer)}")
+          # print(f"user_answer: {user_answer}, type: {type(user_answer)}"
+          
         user_answer = assistant.ask_assistant(user_answer)
         user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
 
@@ -552,8 +555,9 @@ def post_answer(request):
         assistant.end_session()
 
         # Convert the robot_response according to the language user speaks
-        response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
-        robot_response = response.json()['translations'][0]['translation']
+        # response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+        # print(response.json())
+        # robot_response = response.json()['translations'][0]['translation']
 
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
