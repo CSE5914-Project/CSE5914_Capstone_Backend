@@ -79,14 +79,23 @@ class Server():
     "questionString" :  "are you over 18?"
     }]
 
-  def set_server_language_to(self, target_lang):
+# If you changed language here is what gonna happen: 1) All the question will be covnerted to target language, 2)movie list will be overwirte by popular movies.. ==> SO this funciton is not design for updating server language!!!
+  def set_server_language_to(self, target_lang, src_lang="en"):
     # Call the API to do the translation
-    msg = translator.translate(self.question_list, API, "en", target_lang)
+    msg = translator.translate(self.question_list, API, src_lang, target_lang)
     # Get a list of translated questions
     translations = [i['translation'] for i in json.loads(msg.text)['translations']]
     # Reset the robot_question
     self.robot_question = [{"questionCode": i, "questionString": q} for i,q in enumerate(translations)]
     self.data["movieList"] = TMDB_assistant.get_popular_movies()
+
+  def update_question_language_to(self, target_lang, src_lang="en"):
+    # Call the API to do the translation
+    msg = translator.translate(self.question_list, API, src_lang, target_lang)
+    # Get a list of translated questions
+    translations = [i['translation'] for i in json.loads(msg.text)['translations']]
+    # Reset the robot_question
+    self.robot_question = [{"questionCode": i, "questionString": q} for i,q in enumerate(translations)]
 
   def save_data(self, username):
     data_path = os.path.join(self.curr_dir, username+".json")
@@ -96,7 +105,6 @@ class Server():
 
   def read_data(self, username):
     data_path = os.path.join(self.curr_dir, username+".json")
-
     with open(data_path, 'r') as outfile:
       self.data = json.load(outfile)
 
@@ -111,21 +119,21 @@ class Server():
     # self.save_data()
 
   # Update the serverState if there is question left, other wise return error!
-  def get_next_question(self):
-    question = {}
-    if self.end_question == True:
-      question = {
-      "questionCode" : 9999,
-      "questionString" : "You've reached last question?"
-      }
-    else:
-      # Get question 
-      question = self.robot_question[self.serverState]
-      # Update server state
-      self.serverState+=1
-      if self.serverState == self.total_quesitons:
-        self.end_question = True
-    return question
+  # def get_next_question(self):
+  #   question = {}
+  #   if self.end_question == True:
+  #     question = {
+  #     "questionCode" : 9999,
+  #     "questionString" : "You've reached last question?"
+  #     }
+  #   else:
+  #     # Get question 
+  #     question = self.robot_question[self.serverState]
+  #     # Update server state
+  #     self.serverState+=1
+  #     if self.serverState == self.total_quesitons:
+  #       self.end_question = True
+  #   return question
   
   def process_user_input(self, user_answer):
     # Get response from IBM assistant:
@@ -141,7 +149,7 @@ server.set_genre_list(genre_list)
 
 # Note: Due to some frontend issue, the POST call is not able to use, so we change all the API calls to GET requests. But we added note in front of function to indicate the function that involves server status update
 
-# POST: reset the server status, clean all data (But not the database, including the userinfo..)
+# To-Do: Removed ==> It's internal function for server
 @api_view(['GET'])
 def reset_server(request):
     server.reset_server()
@@ -152,14 +160,14 @@ def reset_server(request):
 # Return all robot questions to user interface
 @api_view(['GET'])
 def get_all_question(request):
-    question = server.robot_question
+    print(server.robot_question)
     # if the user don't speak english, convert to corresponding one
-    if server.data["userinfo"]["language"] != "en":
-      response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
-      # print(response.json())
-      question = response.json()['translations'][0]['translation']
+    # if server.data["userinfo"]["language"] != "en":
+    #   response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
+    #   print(response.json())
+    #   server.robot_question = response.json()['translations'][0]['translation']
     return Response(
-      data = question
+      data = server.robot_question
     )
   
 # Return the first robot question and server.movieList to user interface
@@ -178,6 +186,10 @@ def user_login(request):
   # If the username doesn't exist, server will return None (as default)
   if username == server.data["userinfo"]["username"]:
     response = username + " Log in successfully!"
+    # language = server.data["userinfo"]["language"]
+    # if language != "en":
+    #   TMDB_assistant.language = language
+    #   server.set_server_language_to(language)
   else:
     response = "Error, user doesn't exist!'"
   return Response(
@@ -313,19 +325,19 @@ def create_guest_session(request):
   if language != "en":
     server.data["userinfo"]["language"] = language
     TMDB_assistant.language = language
-    server.set_server_language_to(language)
+    server.set_server_language_to(language) # quetion will be update, movie_list ==> popular movies
   
   # Create a session for new user
   success, guest_session_id, expires_at = TMDB_assistant.create_guest_session()
   if success:
     server.data["userinfo"]["guest_session_id"] = guest_session_id
     server.data["userinfo"]["expires_at"] = expires_at
-    server.save_data(username)
     data = {
       "message": "Guest session created successfully!", "userinfo":server.data["userinfo"], "favorite_list":server.data["favorite_list"], "movieList":server.data["movieList"]
       }
   else:
     data = {"message": "Error, Invalid API key: You must be granted a valid key."}
+  server.save_data(username)
   return Response( 
       data=data
     )
@@ -351,11 +363,14 @@ def update_user_info(request):
   # server.data["userinfo"]["language"]  = request.query_params.get("language")
   # if request.query_params.__contains__("username"):
   #   server.data["userinfo"]["username"] = request.query_params.get("username")
-  if request.query_params.__contains__("age"):
-    server.data["userinfo"]["age"]  = request.query_params.get("age")
-  if request.query_params.__contains__("language"):
-    server.data["userinfo"]["language"]  = request.query_params.get("language")
-    TMDB_assistant.language = request.query_params.get("language")
+  # if request.query_params.__contains__("age"):
+  server.data["userinfo"]["age"] = request.query_params.get("age")
+  # if request.query_params.__contains__("language"):
+  language = server.data["userinfo"]["language"] = request.query_params.get("language")
+  print("in update_user_info", language)
+  if language != "en":
+    TMDB_assistant.language = language
+    server.update_question_language_to(language) # ==> Only update the questions, not movie list 
   server.save_data(username)
   return Response(
     data=server.data["userinfo"]
@@ -565,8 +580,10 @@ def post_answer(request):
         else:
           robot_response = "Error, we don't have the result you are asking!"
 
+        print(f"source_lan: en, target_lang: robot_response: {robot_response}")
         # Step4: Convert and return the robot_response according to the language user speaks
         response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+        print(response)
         robot_response = response.json()['translations'][0]['translation']
 
         return Response(
