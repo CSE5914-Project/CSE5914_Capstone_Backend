@@ -22,16 +22,17 @@ def test_post_answer1():
 
 def test_post_create_user1():
     data={'name':'hs', 'email': "123@gmail.com", 'password': "sdfdsfsdfs"}
-    r = requests.post("http://127.0.0.1:8000/api/user/create_user", data=data)
+    r = requests.post("http://127.0.0.1:8000/api/user/create_user/", data=data)
     # 
     print(f"User answer: {r.json()}")
 
 def test_post_save_session1():
-    data={'name':'hs', 'email': "123@gmail.com", 'password': "sdfdsfsdfs"}
-    r = requests.post("http://127.0.0.1:8000/api/user/create_user", data=data)
+    data={'name':'hs'}
+    r = requests.post("http://127.0.0.1:8000/api/user/create_user/", data=data)
     # 
+    print(r.json())
     data={'user_id':'hs', 'liked_movies': ["123","1234"]}
-    r = requests.get("http://127.0.0.1:8000/account/get_session",data=data)
+    r = requests.get("http://127.0.0.1:8000/account/get_session/",data=data)
 
 
 
@@ -46,3 +47,4 @@ if __name__ == '__main__':
     # test_post_answer1()
 
     test_post_create_user1()
+    test_post_save_session1()

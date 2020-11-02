@@ -41,10 +41,14 @@ def create_user(request):
 
     if request.method == 'POST':
         data = request.data
+        print(data)
         try:
             if data['name'] and data['email'] and data['password']:
                 print(data)
-                user = models.Person.objects.create(name=data['name'], email=data['email'], password=data['password'])
+                if User.objects.filter(user_id=data['name']):
+                    return JsonResponse({'status': 0, 'message': 'User with this id exists'})
+                else:
+                    user = User.objects.create(name=data['name'])
 
 
             

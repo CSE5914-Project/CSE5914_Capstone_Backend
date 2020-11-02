@@ -88,7 +88,7 @@ def get_session_ours(user_id):
         
         return {}
 
-    return {'user_id':user_id,"liked_movies":}
+    return {'user_id':user_id,"liked_movies":movie_list}
     
     # response_data = {"session":request.session}
     # # clear session

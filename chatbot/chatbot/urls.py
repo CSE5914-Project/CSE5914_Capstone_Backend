@@ -18,7 +18,7 @@ from django.urls import path
 from django.urls import include
 
 from . import views
-from .view_list import user
+from .view_list import user,session
 from .view_list.session import *
 
 urlpatterns = [
