@@ -97,6 +97,15 @@ class Server():
     # Reset the robot_question
     self.robot_question = [{"questionCode": i, "questionString": q} for i,q in enumerate(translations)]
 
+  def translate(self, msg, target_lang, src_lang="en"):
+    '''
+      msg: string
+      target_lang: language code, two char
+    '''
+    msg = translator.translate(msg, API, src_lang, target_lang)
+    translation = [i['translation'] for i in json.loads(msg.text)['translations']]
+    return translation
+
   def save_data(self, username):
     data_path = os.path.join(self.curr_dir, username+".json")
     print(data_path)
@@ -161,6 +170,7 @@ def reset_server(request):
 @api_view(['GET'])
 def get_all_question(request):
     print(server.robot_question)
+
     # if the user don't speak english, convert to corresponding one
     # if server.data["userinfo"]["language"] != "en":
     #   response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
@@ -186,10 +196,10 @@ def user_login(request):
   # If the username doesn't exist, server will return None (as default)
   if username == server.data["userinfo"]["username"]:
     response = username + " Log in successfully!"
-    # language = server.data["userinfo"]["language"]
-    # if language != "en":
-    #   TMDB_assistant.language = language
-    #   server.set_server_language_to(language)
+    language = server.data["userinfo"]["language"]
+    if language != "en":
+      TMDB_assistant.language = language
+      server.update_question_language_to(language)
   else:
     response = "Error, user doesn't exist!'"
   return Response(
@@ -366,11 +376,13 @@ def update_user_info(request):
   # if request.query_params.__contains__("age"):
   server.data["userinfo"]["age"] = request.query_params.get("age")
   # if request.query_params.__contains__("language"):
-  language = server.data["userinfo"]["language"] = request.query_params.get("language")
+  src_lang = server.data["userinfo"]["language"] 
+  target_lan = request.query_params.get("language")
   print("in update_user_info", language)
-  if language != "en":
-    TMDB_assistant.language = language
-    server.update_question_language_to(language) # ==> Only update the questions, not movie list 
+  if src_lang != target_lan:
+    TMDB_assistant.language = target_lan
+    server.update_question_language_to(target_lan, src_lang) # ==> Only update the questions, not movie list 
+    server.data["userinfo"]["language"] = target_lan
   server.save_data(username)
   return Response(
     data=server.data["userinfo"]
@@ -556,7 +568,8 @@ def post_answer(request):
           # print(f"user_answer: {user_answer}")
           response = translator.translate([user_answer], API, server.data["userinfo"]["language"], "en")
           user_answer = response.json()['translations'][0]['translation']
-        # Use IBM assistant to get the genre keywords 
+          
+        # Use IBM assistant to search movie based on the genre keywords 
         user_answer = assistant.ask_assistant(user_answer)
         user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
 
@@ -580,11 +593,12 @@ def post_answer(request):
         else:
           robot_response = "Error, we don't have the result you are asking!"
 
-        print(f"source_lan: en, target_lang: robot_response: {robot_response}")
+        # ==> THe robot response doesn't matter, we never gonna show this to user!!
+        # print(f"source_lan: en, target_lang: robot_response: {robot_response}")
         # Step4: Convert and return the robot_response according to the language user speaks
-        response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
-        print(response)
-        robot_response = response.json()['translations'][0]['translation']
+        # response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+        # print(response)
+        # robot_response = response.json()['translations'][0]['translation']
 
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
