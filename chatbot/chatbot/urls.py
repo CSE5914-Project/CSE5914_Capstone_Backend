@@ -22,6 +22,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # path('',views.home,name='home'),
     path('api/reset_server/',views.reset_server,name='reset_server'),
+    path('api/get_all_question/',views.get_all_question,name='get_all_question'),
+    # path('api/get_next_question/',views.get_next_question,name='get_next_question'),
     path('api/user_login/',views.user_login,name='user_login'),
     path('api/user_logout/',views.user_logout,name='user_logout'),
 # =================================== Nightly Testing
@@ -43,8 +45,6 @@ urlpatterns = [
     path('api/add_a_favorite_movie/',views.add_a_favorite_movie,name='add_a_favorite_movie'),
     path('api/get_current_favorite_list/',views.get_current_favorite_list,name='get_current_favorite_list'),
 # --------------------------------IBM relevant request    -----------
-    path('api/get_all_question/',views.get_all_question,name='get_all_question'),
-    path('api/get_next_question/',views.get_next_question,name='get_next_question'),
     path('api/set_up_languages/',views.set_up_languages,name='set_up_languages'),
     path('api/post_answer/',views.post_answer,name='post_answer'),
     path('api/get_IBM_response/',views.get_IBM_response,name='get_IBM_response'),

@@ -149,6 +149,26 @@ def reset_server(request):
       data="Session reset completed!" + "  Current server code: "+str(server.serverState)
     )
 
+# Return all robot questions to user interface
+@api_view(['GET'])
+def get_all_question(request):
+    question = server.robot_question
+    # if the user don't speak english, convert to corresponding one
+    if server.data["userinfo"]["language"] != "en":
+      response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
+      # print(response.json())
+      question = response.json()['translations'][0]['translation']
+    return Response(
+      data = question
+    )
+  
+# Return the first robot question and server.movieList to user interface
+# @api_view(['GET'])
+# def get_next_question(request):
+#     return Response(
+#       data=[server.get_next_question(),{"movieList": server.movieList}]
+#     )
+
 # Need username as param
 @api_view(['GET'])
 def user_login(request):
@@ -472,20 +492,6 @@ def set_up_languages(request):
   TMDB_assistant.set_language(language)
   return Response({"message": "Updated language to: "+language})
 
-# Return all robot questions to user interface
-@api_view(['GET'])
-def get_all_question(request):
-    return Response(
-      data=server.robot_question
-    )
-  
-# Return the first robot question and server.movieList to user interface
-@api_view(['GET'])
-def get_next_question(request):
-    return Response(
-      data=[server.get_next_question(),{"movieList": server.movieList}]
-    )
-
 @api_view(['GET'])
 def get_IBM_response(request):
   # Obtain user answer：
@@ -504,26 +510,26 @@ def post_answer(request):
     """
     List all code snippets, or create a new snippet.
     """
-    # If the request 'Get' method, the next reuqestion and current movieList will be returned
-    if request.method == 'POST':
-      question = server.get_next_question()
-      # if the user don't speak english, convert to corresponding one
-      if server.data["userinfo"]["language"] != "en":
-        response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
-        # print(response.json())
-        translated_question = response.json()['translations'][0]['translation']
-      return Response(
-        # return the next question along with the current movie list
-        data=[
-            translated_question,
-            {"movieList": server.movieList}
-          ]
-      )
+    # # If the request 'Get' method, the next reuqestion and current movieList will be returned
+    # if request.method == 'POST':
+    #   question = server.get_next_question()
+    #   # if the user don't speak english, convert to corresponding one
+    #   if server.data["userinfo"]["language"] != "en":
+    #     response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
+    #     # print(response.json())
+    #     question = response.json()['translations'][0]['translation']
+    #   return Response(
+    #     # return the next question along with the current movie list
+    #     data=[
+    #         translated_question,
+    #         {"movieList": server.movieList}
+    #       ]
+    #   )
 
     # If the request 'POST' method, the robot_response and the updated movieList will be returned
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
-    elif request.method == 'GET':
+    if request.method == 'GET':
         # Step1: Get user's response, and the page info to searching corresponding genre movies
         user_answer = request.query_params["answerText"]
         page = int(request.query_params['page'])
