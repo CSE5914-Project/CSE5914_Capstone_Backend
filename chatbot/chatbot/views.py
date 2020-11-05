@@ -170,13 +170,7 @@ def reset_server(request):
 # Return all robot questions to user interface
 @api_view(['GET'])
 def get_all_question(request):
-    print(server.robot_question)
-
-    # if the user don't speak english, convert to corresponding one
-    # if server.data["userinfo"]["language"] != "en":
-    #   response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
-    #   print(response.json())
-    #   server.robot_question = response.json()['translations'][0]['translation']
+    # print(server.robot_question)
     return Response(
       data = server.robot_question
     )
@@ -602,7 +596,7 @@ def post_answer(request):
             server.user_genre = gener_id
         # Update the robot_response 
         if exist:
-          robot_response = f"Found you requested genre \"{user_answer}\" movies!"
+          robot_response = f'Found you requested genre "{user_answer}" movies!'
           # Update the movieList
           server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
           assistant.end_session()
@@ -614,10 +608,11 @@ def post_answer(request):
         # Step4: Convert and return the robot_response according to the language user speaks
         src_lang = "en"
         target_lang = server.data["userinfo"]["language"]
-        msg = translator.translate([robot_response], API, src_lang, target_lang)
-        print(msg)
-        robot_response = [i['translation'] for i in json.loads(msg.text)['translations']]
-        print(robot_response)
+        if src_lang!=target_lang:
+          msg = translator.translate([robot_response], API, src_lang, target_lang)
+          print(msg)
+          robot_response = [i['translation'] for i in json.loads(msg.text)['translations']]
+          print(robot_response)
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
         )
