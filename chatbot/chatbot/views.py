@@ -125,6 +125,7 @@ class Server():
 
   def reset_server(self):
     self.__init__()
+    TMDB_assistant.language = language
     # self.save_data()
 
   # Update the serverState if there is question left, other wise return error!
