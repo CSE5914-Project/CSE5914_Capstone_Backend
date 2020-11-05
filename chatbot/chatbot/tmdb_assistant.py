@@ -302,6 +302,12 @@ if __name__ == '__main__':
     movie_list = TMDB_assistant.discover_movies(page=100, gener_id=28)
     print(movie_list)
 
+# Test keyword search:
+    print("Testing: discover_movies based on keyword")
+
+    movie_list = TMDB_assistant.search_movie_by_keyword(keyword, page=1)
+    print(movie_list)
+
 # Test get_movie_by_id 
     print("Testing: get_movie_by_id")
     movie_id = 550
