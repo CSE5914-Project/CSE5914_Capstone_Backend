@@ -602,7 +602,7 @@ def post_answer(request):
             server.user_genre = gener_id
         # Update the robot_response 
         if exist:
-          robot_response = f"Found you requested genre {user_answer} movies!"
+          robot_response = f"Found you requested genre \"{user_answer}\" movies!"
           # Update the movieList
           server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
           assistant.end_session()
