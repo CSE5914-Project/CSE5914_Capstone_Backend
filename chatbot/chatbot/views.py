@@ -15,7 +15,7 @@ from django.http import JsonResponse
 from . import assistant
 from . import tmdb_assistant
 from . import translator
-
+from . import nlu
 import requests
 import json
 import os
@@ -395,6 +395,21 @@ def search_movie_by_keyword(request):
     keyword = request.query_params["keyword"]
     page = request.query_params["page"]
     json_data = TMDB_assistant.search_movie_by_keyword(keyword, page)
+    return Response(
+      data={"movieList": json_data}
+    )
+
+@api_view(['GET'])
+def search_movie_by_sentence_keyword(request,top_n = 15):
+    user_response = request.query_params["answerText"]
+    page = request.query_params["page"]
+    keywords = nlu.get_keywords(user_response)
+    
+    if len(keywords) > 0:
+      json_data = TMDB_assistant.search_movie_by_keyword(keywords[0], page)
+    else:
+      json_data = TMDB_assistant.get_popular_movies(top_n)
+
     return Response(
       data={"movieList": json_data}
     )
