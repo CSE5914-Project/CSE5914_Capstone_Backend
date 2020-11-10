@@ -29,3 +29,6 @@ pip install -r requirements.txt
 Running server with command: 
 python manage.py runserver
 
+## Tests
+
+see `/test/` folder for details on Selenium system test 
