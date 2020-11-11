@@ -215,6 +215,8 @@ def user_logout(request):
 # =================================== browser Status management 
 @api_view(['GET'])
 def get_browser_status(request):
+  username = server.data["userinfo"]["username"]
+  server.read_data(username)
   return Response(
     data={"browser_status":server.data["browser_status"] }
   )
@@ -249,7 +251,8 @@ def update_last_genere_text(request):
 # =================================== MovieList management 
 @api_view(['GET'])
 def get_current_favorite_list(request):
-  # Whose favorite_list you want to get?
+  username = server.data["userinfo"]["username"]
+  server.read_data(username)
   return Response(
     data={"favorite_list":server.data["favorite_list"]}
   )
