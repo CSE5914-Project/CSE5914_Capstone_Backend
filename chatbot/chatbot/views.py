@@ -482,7 +482,7 @@ def get_upcoming_movie(request):
     data={"movieList": json_data}
   )
 
-@api_view(['POST'])
+@api_view(['GET'])
 def get_popular_movies(request):
   """
   Argument: 
