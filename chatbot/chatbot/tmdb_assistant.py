@@ -180,13 +180,33 @@ class TMDB_assistant():
     # ------------------------------------TMDB API call ---------------------
     # Reference: https://developers.themoviedb.org/3/search/search-keywords
     def search_movie_by_keyword(self, keyword, page=1):
+        '''Return a list of json object{id: 1234, name: xxxxx}
+        '''
         query_url = "https://api.themoviedb.org/3/search/keyword?api_key="+self.api_key+"&query="+keyword+"&page="+str(page)
+        response = requests.get(query_url)    # Get response message
+        json_data = response.json()
+        return json_data
+
+    # (Differ from search_movie_by_keyword) Supported by https://developers.themoviedb.org/3/search/search-movies
+    def search_movie(self, query, page=1, include_adult="true"):
+        '''Return a list of json object
+        '''
+        if not include_adult:
+            include_adult = "false"
+        query_url = "https://api.themoviedb.org/3/search/movie?api_key="+self.api_key+"&language="+self.language+"&query="+query+"&page="+str(page)+"&include_adult="+include_adult
         response = requests.get(query_url)    # Get response message
         json_data = response.json()
         return json_data
 
     def get_movie_by_id(self, movie_id):
         query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"?api_key="+self.api_key
+        response = requests.get(query_url)    # Get response message
+        json_data = response.json()
+        return json_data
+
+    # (Differ than get_movie_by_id) Supported by https://developers.themoviedb.org/3/movies/get-movie-details
+    def get_movie_details_by_id(self, movie_id):
+        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"?api_key="+self.api_key+"&language="+self.language
         response = requests.get(query_url)    # Get response message
         json_data = response.json()
         return json_data
