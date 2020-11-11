@@ -191,8 +191,6 @@ class TMDB_assistant():
     def search_movie(self, query, page=1, include_adult="true"):
         '''Return a list of json object
         '''
-        if not include_adult:
-            include_adult = "false"
         query_url = "https://api.themoviedb.org/3/search/movie?api_key="+self.api_key+"&language="+self.language+"&query="+query+"&page="+str(page)+"&include_adult="+include_adult
         response = requests.get(query_url)    # Get response message
         json_data = response.json()
@@ -238,7 +236,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28"):
+    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28", include_adult="true"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -248,7 +246,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult="+include_adult+"&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
         r = requests.get(query_url)
         json_data = r.json()
         return json_data

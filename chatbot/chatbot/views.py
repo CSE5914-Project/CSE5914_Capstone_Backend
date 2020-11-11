@@ -414,15 +414,7 @@ def update_user_info(request):
 def search_movie_by_keyword(request):
     keyword = request.query_params["keyword"]
     page = request.query_params["page"]
-    # Keyword Translation: If the user don't enter english, we need to convert that:
-    # src_lang = server.data["userinfo"]["language"]
-    # target_lang = "en"
-    # if src_lang!=target_lang:
-    #   msg = translator.translate([keyword], API, src_lang, target_lang)
-    #   print(f"msg: {msg}")
-    #   keyword = [i['translation'] for i in json.loads(msg.text)['translations']][0]
-    #   print(f"translated keyword: {keyword}")
-    json_data = TMDB_assistant.search_movie(keyword, page, include_adult="true")  
+    json_data = TMDB_assistant.search_movie(keyword, page, include_adult=request.query_params["include_adult"])  
 
     return Response(
       data={"movieList": json_data}
@@ -505,6 +497,7 @@ def get_upcoming_movie(request):
   return Response(
     data={"movieList": json_data}
   )
+
 
 @api_view(['GET'])
 def get_popular_movies(request):
@@ -632,7 +625,7 @@ def post_answer(request):
         if exist:
           robot_response = f'Found your requested genre "{user_answer}" movies!'
           # Update the movieList
-          server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
+          server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
           assistant.end_session()
         else:
           robot_response = "Error, we don't have the result you are asking!"
