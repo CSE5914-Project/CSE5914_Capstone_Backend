@@ -185,7 +185,7 @@ class TMDB_assistant():
         json_data = response.json()
         return json_data
 
-    def get_movie_by_id(self, movie_id:int):
+    def get_movie_by_id(self, movie_id):
         query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"?api_key="+self.api_key
         response = requests.get(query_url)    # Get response message
         json_data = response.json()

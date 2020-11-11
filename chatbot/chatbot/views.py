@@ -389,7 +389,7 @@ def update_user_info(request):
 def search_movie_by_keyword(request):
     keyword = request.query_params["keyword"]
     page = request.query_params["page"]
-    # If the user don't enter english, we need to convert that:
+    # Keyword Translation: If the user don't enter english, we need to convert that:
     src_lang = server.data["userinfo"]["language"]
     target_lang = "en"
     if src_lang!=target_lang:
@@ -398,8 +398,16 @@ def search_movie_by_keyword(request):
       keyword = [i['translation'] for i in json.loads(msg.text)['translations']][0]
       print(f"translated keyword: {keyword}")
     json_data = TMDB_assistant.search_movie_by_keyword(keyword, page)
+    
+    # Find the corresponding movie info
+    movieList = []
+    for movie_item in json_data["results"]:
+      print(movie_item)
+      movie_json_object = TMDB_assistant.get_movie_by_id(movie_item["id"])
+      movieList.append(movie_json_object)      
+
     return Response(
-      data={"movieList": json_data}
+      data=movieList
     )
 
 @api_view(['GET'])
