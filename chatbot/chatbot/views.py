@@ -22,6 +22,7 @@ import os
 from enum import Enum
 # For language detection in post_answer, https://pypi.org/project/langdetect/
 from langdetect import detect
+from textblob import TextBlob
 
 # Set up IBM Chatbot API
 assistant = assistant.Assistant()
@@ -604,12 +605,15 @@ def post_answer(request):
         # Step2: Get response from IBM assistant:
         assistant.create_session()
         # If user don't speak english, we need to convert it to en, in order to processing the 'genre' keyword filtering
-        src_lang = detect(user_answer)[:2]
+        # src_lang = detect(user_answer)[:2]
+        src_lang = TextBlob(user_answer).detect_language()[:2]
         print(f"User typed language: {src_lang}")
         if src_lang != "en":
           # print(f"user_answer: {user_answer}")
           response = translator.translate([user_answer], API, src_lang, "en")
+          print(f"Response: {response}")
           user_answer = response.json()['translations'][0]['translation']
+          print(f"User_answer: {user_answer}")
           # response = translator.translate([user_answer], API, src_lang, "en")
           # user_answer = [i['translation'] for i in json.loads(response.text)['translations']]
           
