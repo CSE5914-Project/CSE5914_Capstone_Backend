@@ -69,15 +69,15 @@ class Server():
     self.end_question = False
     self.question_list = ["What language do you speak?",  "What genre would you like to watch?", "are you over 18?"]
     self.robot_question = [{
-        "questionCode" : 1,
-        "questionString" : "What language do you speak?" 
-      },{
-        "questionCode" : 2,
-        "questionString" : "What genre would you like to watch?"
-      },{
-        "questionCode" : 3,
-      "questionString" :  "are you over 18?"
-      }]
+      "questionCode" : 1,
+      "questionString" : "What language do you speak?" 
+    },{
+      "questionCode" : 2,
+      "questionString" : "What genre would you like to watch?"
+    },{
+      "questionCode" : 3,
+    "questionString" :  "are you over 18?"
+    }]
 
 # If you changed language here is what gonna happen: 1) All the question will be covnerted to target language, 2)movie list will be overwirte by popular movies.. ==> SO this funciton is not design for updating server language!!!
   def set_server_language_to(self, target_lang, src_lang="en"):
@@ -420,21 +420,20 @@ def search_movie_by_keyword(request):
       data={"movieList": json_data}
     )
 
-# # Drago: What the hell is this?
-# @api_view(['GET'])
-# def search_movie_by_sentence_keyword(request,top_n = 15):
-#     user_response = request.query_params["answerText"]
-#     page = request.query_params["page"]
-#     keywords = nlu.get_keywords(user_response)
+@api_view(['GET'])
+def search_movie_by_sentence_keyword(request,top_n = 15):
+    user_response = request.query_params["answerText"]
+    page = request.query_params["page"]
+    keywords = nlu.get_keywords(user_response)
     
-#     if len(keywords) > 0:
-#       json_data = TMDB_assistant.search_movie_by_keyword(keywords[0], page)
-#     else:
-#       json_data = TMDB_assistant.get_popular_movies(top_n)
+    if len(keywords) > 0:
+      json_data = TMDB_assistant.search_movie_by_keyword(keywords[0], page)
+    else:
+      json_data = TMDB_assistant.get_popular_movies(top_n)
 
-#     return Response(
-#       data={"movieList": json_data}
-#     )
+    return Response(
+      data={"movieList": json_data}
+    )
 
 @api_view(['GET'])
 def get_movie_by_id(request):
