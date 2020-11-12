@@ -641,5 +641,5 @@ def post_answer(request):
           robot_response = [i['translation'] for i in json.loads(msg.text)['translations']]
           print(robot_response)
         return Response(
-            data= {"robotResponse": robot_response, "movieList": server.movieList}
+            data= {"robotResponse": robot_response, "movieList": server.movieList, "exist": exist}
         )
