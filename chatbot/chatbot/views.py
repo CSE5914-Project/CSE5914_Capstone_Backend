@@ -38,6 +38,7 @@ api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
 TMDB_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
 
+# For browser_status
 class movieSource(Enum):
   default = "popular"
   byId =  "byId"
@@ -79,13 +80,14 @@ class Server():
         "questionCode" : 3,
       "questionString" :  "are you over 18?"
       }]
-  def __repr__(self):
-     return "I am user: %s, age: %s, language: %s" % (self.data["userinfo"]["username"], self.data["userinfo"]["age"], self.data["userinfo"]["language"])
 
   def __str__(self):
-    return self.__repr__()
+     return "I am user: %s, age: %s, language: %s" % (self.data["userinfo"]["username"], self.data["userinfo"]["age"], self.data["userinfo"]["language"])
 
-# If you changed language here is what gonna happen: 1) All the question will be covnerted to target language, 2)movie list will be overwirte by popular movies.. ==> SO this funciton is not design for updating server language!!!
+  def __repr__(self):
+    return self.__str__()
+
+  # If you changed language here is what gonna happen: 1) All the question will be covnerted to target language, 2)movie list will be overwirte by popular movies.. ==> SO this funciton is not design for updating server language!!!
   def set_server_language_to(self, target_lang, src_lang="en"):
     # Call the API to do the translation
     msg = translator.translate(self.question_list, API, src_lang, target_lang)
@@ -170,6 +172,19 @@ class Server():
 # =================================== Set up Server
 server= Server()
 
+# ==========> The 11 (POST) call that added username with read_data
+# user_login
+# get_browser_status
+# update_last_movie_id
+# update_last_genere_text
+# get_current_favorite_list
+# remove_a_favorite_movie
+# add_a_favorite_movie
+# update_user_info
+# get_user_info
+# create_guest_session
+# post_answer
+
 # Note: Due to some frontend issue, the POST call is not able to use, so we change all the API calls to GET requests. But we added note in front of function to indicate the function that involves server status update
 
 # To-Do: Removed ==> It's internal function for server
@@ -207,7 +222,7 @@ def user_login(request):
     response = username + " Log in successfully!"
     # setup the user language 
     language = server.data["userinfo"]["language"]
-    if language != "en":
+    if (language != "en") or (language != "en-US"):
       TMDB_assistant.language = language
       server.update_question_language_to(language)
   else:
@@ -399,12 +414,6 @@ def update_user_info(request):
   server.read_data(username)
 
   # Update user data
-  # server.data["userinfo"]["username"] = request.query_params.get("username")
-  # server.data["userinfo"]["age"]  = request.query_params.get("age")
-  # server.data["userinfo"]["language"]  = request.query_params.get("language")
-  # if request.query_params.__contains__("username"):
-  #   server.data["userinfo"]["username"] = request.query_params.get("username")
-  # if request.query_params.__contains__("age"):
   server.data["userinfo"]["username"] = request.query_params.get("username")
   server.data["userinfo"]["age"] = request.query_params.get("age")
   
