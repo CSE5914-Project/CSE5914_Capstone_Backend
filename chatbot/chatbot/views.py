@@ -20,6 +20,8 @@ import requests
 import json
 import os
 from enum import Enum
+# For language detection in post_answer, https://pypi.org/project/langdetect/
+from langdetect import detect
 
 # Set up IBM Chatbot API
 assistant = assistant.Assistant()
@@ -602,10 +604,14 @@ def post_answer(request):
         # Step2: Get response from IBM assistant:
         assistant.create_session()
         # If user don't speak english, we need to convert it to en, in order to processing the 'genre' keyword filtering
-        if server.data["userinfo"]["language"] != "en":
+        src_lang = detect(user_answer)[:2]
+        print(f"User typed language: {src_lang}")
+        if src_lang != "en":
           # print(f"user_answer: {user_answer}")
-          response = translator.translate([user_answer], API, server.data["userinfo"]["language"], "en")
+          response = translator.translate([user_answer], API, src_lang, "en")
           user_answer = response.json()['translations'][0]['translation']
+          # response = translator.translate([user_answer], API, src_lang, "en")
+          # user_answer = [i['translation'] for i in json.loads(response.text)['translations']]
           
         # Use IBM assistant to search movie based on the genre keywords 
         user_answer = assistant.ask_assistant(user_answer)
@@ -638,8 +644,8 @@ def post_answer(request):
         target_lang = server.data["userinfo"]["language"]
         if src_lang!=target_lang:
           msg = translator.translate([robot_response], API, src_lang, target_lang)
-          print(msg)
           robot_response = [i['translation'] for i in json.loads(msg.text)['translations']]
+          print(msg)
           print(robot_response)
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList, "exist": exist}
