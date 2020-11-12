@@ -44,14 +44,14 @@ class movieSource(Enum):
   byGenere = "byGenere"
 
 class Server():
-  def __init__(self, username="None", age=21, language="en-US"):
+  def __init__(self):
     self.curr_dir = "data"
     self.user_genre = None
     self.data = {
         "userinfo":{
-          "username": username,
-          'age': age,
-          'language': language,
+          "username": None,
+          'age': 21,
+          'language': 'en',
           'session_id': None,
           "guest_session_id": None,
           "expires_at": None
@@ -67,7 +67,6 @@ class Server():
     self.serverState = 0
     self.total_quesitons = 3
     self.end_question = False
-    self.genre_list = TMDB_assistant.get_all_genres()
     self.question_list = ["What language do you speak?",  "What genre would you like to watch?", "are you over 18?"]
     self.robot_question = [{
         "questionCode" : 1,
@@ -79,11 +78,6 @@ class Server():
         "questionCode" : 3,
       "questionString" :  "are you over 18?"
       }]
-  def __repr__(self):
-     return "I am user: %s, age: %s, language: %s" % (self.data["userinfo"]["username"], self.data["userinfo"]["age"], self.data["userinfo"]["language"])
-
-  def __str__(self):
-    return self.__repr__()
 
 # If you changed language here is what gonna happen: 1) All the question will be covnerted to target language, 2)movie list will be overwirte by popular movies.. ==> SO this funciton is not design for updating server language!!!
   def set_server_language_to(self, target_lang, src_lang="en"):
@@ -114,33 +108,24 @@ class Server():
 
   def save_data(self, username):
     data_path = os.path.join(self.curr_dir, username+".json")
-    try:
-      with open(data_path, 'w') as outfile:
-        json.dump(self.data, outfile)
-        return True
-    except IOError:
-      print(f"Could not save file {data_path}") 
-      return False  
+    print(data_path)
+    with open(data_path, 'w') as outfile:
+      json.dump(self.data, outfile)
 
   def read_data(self, username):
     data_path = os.path.join(self.curr_dir, username+".json")
-    try:
-      with open(data_path, 'r') as outfile:
-        self.data = json.load(outfile)
-        return True
-    except IOError:
-      print(f"Could not read file {data_path}")
-      return False
+    with open(data_path, 'r') as outfile:
+      self.data = json.load(outfile)
 
-  # def set_genre_list(self, genre_list):
-  #   self.genre_list = genre_list
+  def set_genre_list(self, genre_list):
+    self.genre_list = genre_list
 
   def get_genre_list(self):
     return self.genre_list
 
   def reset_server(self):
     self.__init__()
-    TMDB_assistant.language = "en-US"
+    TMDB_assistant.language = language
     # self.save_data()
 
   # Update the serverState if there is question left, other wise return error!
@@ -168,7 +153,9 @@ class Server():
     return robot_response
 
 # =================================== Set up Server
-server= Server()
+server = Server()
+genre_list = TMDB_assistant.get_all_genres()
+server.set_genre_list(genre_list)
 
 # Note: Due to some frontend issue, the POST call is not able to use, so we change all the API calls to GET requests. But we added note in front of function to indicate the function that involves server status update
 
@@ -196,33 +183,28 @@ def get_all_question(request):
 #     )
 
 # Need username as param
-@api_view(['GET'])  # ==> POST
+@api_view(['GET'])
 def user_login(request):
-  # Who is the user?
+  # What is the user name?
   username = request.query_params["username"]
-  exist_user = server.read_data(username)
-
+  server.read_data(username)
   # If the username doesn't exist, server will return None (as default)
-  if exist_user:
+  if username == server.data["userinfo"]["username"]:
     response = username + " Log in successfully!"
-    # setup the user language 
     language = server.data["userinfo"]["language"]
     if language != "en":
       TMDB_assistant.language = language
       server.update_question_language_to(language)
   else:
     response = "Error, user doesn't exist!'"
-
   return Response(
     data= response
   )
 
 @api_view(['GET'])
 def user_logout(request):
-  # username = request.query_params["username"]
-  # server.read_data(username)
   # What is the user name?
-  username = server.data["userinfo"]["username"] 
+  username = server.data["userinfo"]["username"]
   server.save_data(username)
   server.reset_server()
   return Response(
@@ -231,9 +213,9 @@ def user_logout(request):
 
 # Note: Those functions are used for the purpose of restoring browser status after user last visit
 # =================================== browser Status management 
-@api_view(['GET']) # ===> POST
+@api_view(['GET'])
 def get_browser_status(request):
-  username = request.query_params["username"]
+  username = server.data["userinfo"]["username"]
   server.read_data(username)
   return Response(
     data={"browser_status":server.data["browser_status"] }
@@ -241,15 +223,12 @@ def get_browser_status(request):
 
 # Need username as param
 # POST: update the last movie that user visited, involves server update
-@api_view(['GET']) # ==> POST
+@api_view(['GET'])
 def update_last_movie_id(request):
-  # who is the target user?
-  username = request.query_params["username"]
-  server.read_data(username) 
-  # Update user data
   server.data["browser_status"]["movieSource"] = movieSource.byId.value
   server.data["browser_status"]["lastMovieId"]= request.query_params["lastMovieId"]
-  # Save the user data
+  username = server.data["userinfo"]["username"]
+
   server.save_data(username)
   return Response(
     data={"browser_status":server.data["browser_status"] }
@@ -259,14 +238,10 @@ def update_last_movie_id(request):
 # POST: update the last genre that user requested, involves server update
 @api_view(['GET'])
 def update_last_genere_text(request):
-  # who is the target user?
-  username = request.query_params["username"]
-  server.read_data(username) 
-  # Update user data
   server.data["browser_status"]["movieSource"] = movieSource.byGenere.value
   server.data["browser_status"]["lastGenreText"]= request.query_params["lastGenreText"]
   username = server.data["userinfo"]["username"]
-  # save the
+
   server.save_data(username)
   return Response(
     data={"browser_status":server.data["browser_status"] }
@@ -276,8 +251,7 @@ def update_last_genere_text(request):
 # =================================== MovieList management 
 @api_view(['GET'])
 def get_current_favorite_list(request):
-  # username = server.data["userinfo"]["username"]
-  username = request.query_params["username"]
+  username = server.data["userinfo"]["username"]
   server.read_data(username)
   return Response(
     data={"favorite_list":server.data["favorite_list"]}
@@ -286,16 +260,13 @@ def get_current_favorite_list(request):
 # POST: remove a favorite movie from particular user's list, involves server update
 @api_view(['GET'])
 def remove_a_favorite_movie(request):
-  # Who is the target object
-  username = request.query_params["username"]
-  server.read_data(username)
   # what is the movie we want to remove
   movie_id= request.query_params["movie_id"]
   server.data["favorite_list"].pop(movie_id)
   # print(server.data["favorite_list"])
+
   username = server.data["userinfo"]["username"]
   server.save_data(username)
-
   return Response(
     data={
       "message": str(movie_id)+" removed!",
@@ -305,15 +276,14 @@ def remove_a_favorite_movie(request):
 
 @api_view(['GET'])
 def add_a_favorite_movie(request):
-  # Who is the target user
-  username = request.query_params["username"]
-  server.read_data(username)
-  # Update user data: what is the movie you want to add to the list?
+  # Who is your target user?
+  username = server.data["userinfo"]["username"]
+  # what is the movie you want to add to the list?
   movie_id= request.query_params["movie_id"]
   movie_json_obj = TMDB_assistant.get_movie_by_id(movie_id)
   server.data["favorite_list"][movie_id] = movie_json_obj
   # server.data["favorite_list"].append(movie_json_obj)
-  # Save the user data
+
   server.save_data(username)
   return Response(
     data={
@@ -355,7 +325,7 @@ def create_user_session(request):
 @api_view(['GET'])
 def create_guest_session(request):
   # Get the data from user
-  username = request.query_params["username"]
+  username = server.data["userinfo"]["username"] = request.query_params["username"]
   server.data["userinfo"]["age"]  = request.query_params["age"]
   language  = request.query_params["language"]
   
@@ -375,7 +345,6 @@ def create_guest_session(request):
       }
   else:
     data = {"message": "Error, Invalid API key: You must be granted a valid key."}
-  # Save the data
   server.save_data(username)
   return Response( 
       data=data
@@ -384,8 +353,9 @@ def create_guest_session(request):
 @api_view(['GET'])
 def get_user_info(request):
   # Who is your target user?
-  username = request.query_params.get("username")
-  server.read_data(username)
+  # username = request.query_params["username"]
+  # username = server.data["userinfo"]["username"]
+  # server.read_data(username)
   return Response(
     data=server.data["userinfo"]
   )
@@ -394,21 +364,16 @@ def get_user_info(request):
 # Update user info: name, age, and language
 @api_view(['GET'])
 def update_user_info(request):
-  # Who is your target user?
-  username = request.query_params.get("username")
-  server.read_data(username)
-
-  # Update user data
+  username = server.data["userinfo"]["username"] = request.query_params.get("username")
+  # server.read_data(username)
   # server.data["userinfo"]["username"] = request.query_params.get("username")
   # server.data["userinfo"]["age"]  = request.query_params.get("age")
   # server.data["userinfo"]["language"]  = request.query_params.get("language")
   # if request.query_params.__contains__("username"):
   #   server.data["userinfo"]["username"] = request.query_params.get("username")
   # if request.query_params.__contains__("age"):
-  server.data["userinfo"]["username"] = request.query_params.get("username")
   server.data["userinfo"]["age"] = request.query_params.get("age")
-  
-  # Translate the quesiton to target language
+  # if request.query_params.__contains__("language"):
   src_lang = server.data["userinfo"]["language"] 
   target_lan = request.query_params.get("language")
   print("in update_user_info", language)
@@ -416,8 +381,6 @@ def update_user_info(request):
     TMDB_assistant.language = target_lan
     server.update_question_language_to(target_lan, src_lang) # ==> Only update the questions, not movie list 
     server.data["userinfo"]["language"] = target_lan
-
-  # Save the data
   server.save_data(username)
   return Response(
     data=server.data["userinfo"]
@@ -450,12 +413,12 @@ def update_user_info(request):
 #     return Response(
 #       data={"movieList": movieList}
 #     )
-
 @api_view(['GET'])
 def search_movie_by_keyword(request):
     keyword = request.query_params["keyword"]
     page = request.query_params["page"]
     json_data = TMDB_assistant.search_movie(keyword, page, include_adult=request.query_params["include_adult"])  
+
     return Response(
       data={"movieList": json_data}
     )
@@ -488,8 +451,7 @@ def get_movie_by_id(request):
 # Return the first robot question and server.movieList to user interface
 @api_view(['GET'])
 def get_current_movie_list(request):
-  # Who is the target user
-    username = request.query_params["username"]
+    username = server.data["userinfo"]["username"]
     server.read_data(username)
     return Response(
       data={"movieList": server.data["movieList"]}
@@ -521,15 +483,21 @@ def get_movie_overview(request):
 def get_latest_movie(query):
   # Get the data from TMDB databases
   json_data = TMDB_assistant.get_latest_movie()
+  # update the movie list
+  # print(f"json_data {json_data}")
+  # server.data["movieList"] = json_data
   return Response(
     data={"movieList": json_data}
   )
 
 @api_view(['GET'])
 def get_upcoming_movie(request):
-  page = request.query_params['page']
+  page = int(request.query_params['page'])
   # Get the data from TMDB databases
-  json_data = TMDB_assistant.get_upcoming_movie(int(page))
+  json_data = TMDB_assistant.get_upcoming_movie(page)
+  # update the movie list
+  # print(f"json_data {json_data}")
+  # server.movieList = json_data
   return Response(
     data={"movieList": json_data}
   )
@@ -550,6 +518,9 @@ def get_popular_movies(request):
   # ==> query.data: {}, query.query_params: <QueryDict: {'top_n': ['10']}>
   # Get the data from TMDB databases
   json_data = TMDB_assistant.get_popular_movies(top_n, page)
+  # json_data = json.loads(json_data)
+  # update the movie list
+  # server.movieList = json_data
   return Response(
     data={"movieList":json_data}
   )
@@ -561,6 +532,7 @@ def get_recommendation_for_movie(request):
   page = int(request.query_params['page'])
   print(f"movie_id: {movie_id}")
   movieList = TMDB_assistant.get_recommendation_for_movie(movie_id, page)
+  # server.movieList = movieList
   return Response(
     data={"movieList": movieList}
   )
@@ -571,6 +543,7 @@ def get_similar_movies(request):
   page = int(request.query_params['page'])
   print(f"movie_id: {movie_id}")
   movieList = TMDB_assistant.get_similar_movies(movie_id, page)
+  # server.movieList = movieList
   return Response(
     data={"movieList": movieList}
   )
@@ -600,7 +573,7 @@ def get_IBM_response(request):
   )
 
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
-@api_view(['GET'])  # ==> POST
+@api_view(['GET'])
 def post_answer(request):
     """
     List all code snippets, or create a new snippet.
@@ -625,10 +598,6 @@ def post_answer(request):
     # e.g. user say: { "questionCode": 1, "answerText": "War"} ==> {"robotResponse": "Found you requested genre War with id 10752", 
     # "movieList": { ... }}
     if request.method == 'GET':
-        # Read user data from
-        username = request.query_params["username"]
-        server.read_data(username)
-
         # Step1: Get user's response, and the page info to searching corresponding genre movies
         user_answer = request.query_params["answerText"]
         page = int(request.query_params['page'])
