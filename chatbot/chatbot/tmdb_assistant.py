@@ -46,6 +46,20 @@ class TMDB_assistant():
         text = response.json()
         print("Json data for post: ", text)
 
+    def rate_a_movie(self, movie_id, session_id, rating_value):
+        url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"/rating?api_key="+self.api_key+"&guest_session_id="+session_id
+        payload = {
+            "value": rating_value
+            }
+        # header = {'Content-Type': 'application/json;charset=utf-8'}
+        response = requests.post(url, json=payload)
+        json_data = response.json()
+        return json_data
+
+    def add_to_watchlist(self):
+        raise NotImplementedError
+
+
     # Referebce: 1) Selenium tutorial: https://www.youtube.com/watch?v=oM-yAjUGO-E 2) Session Object feature in Requests, https://requests.readthedocs.io/en/master/user/advanced/
     def create_user_session_in_onestep(self):
         # Step1: Create a request token
@@ -145,7 +159,6 @@ class TMDB_assistant():
         # movie_title = movie_title.lower().strip().replace(" ", "-")
         # path = root_path + str(movie_id) + "-" + movie_title + "#play=" + key
         path = "https://www.youtube.com/watch?v="+key+"&feature=emb_title"
-
         # https://www.youtube.com/watch?v=aETz_dRDEys&feature=emb_title
         # https://www.themoviedb.org/movie/694919-money-plane#play=aETz_dRDEys
         # https://www.themoviedb.org/movie/734309-santana#play=CdkxJ8BD0EI
@@ -164,9 +177,34 @@ class TMDB_assistant():
             print("Error in is_adult_movie: adult doesn't exist!")
         return result
 
-    # ------------------------------------API call ---------------------
-    def get_movie_by_id(self, movie_id:int):
+    # ------------------------------------TMDB API call ---------------------
+    # Reference: https://developers.themoviedb.org/3/search/search-keywords
+    def search_movie_by_keyword(self, keyword, page=1):
+        '''Return a list of json object{id: 1234, name: xxxxx}
+        '''
+        query_url = "https://api.themoviedb.org/3/search/keyword?api_key="+self.api_key+"&query="+keyword+"&page="+str(page)
+        response = requests.get(query_url)    # Get response message
+        json_data = response.json()
+        return json_data
+
+    # (Differ from search_movie_by_keyword) Supported by https://developers.themoviedb.org/3/search/search-movies
+    def search_movie(self, query, page=1, include_adult="true"):
+        '''Return a list of json object
+        '''
+        query_url = "https://api.themoviedb.org/3/search/movie?api_key="+self.api_key+"&language="+self.language+"&query="+query+"&page="+str(page)+"&include_adult="+include_adult
+        response = requests.get(query_url)    # Get response message
+        json_data = response.json()
+        return json_data
+
+    def get_movie_by_id(self, movie_id):
         query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"?api_key="+self.api_key
+        response = requests.get(query_url)    # Get response message
+        json_data = response.json()
+        return json_data
+
+    # (Differ than get_movie_by_id) Supported by https://developers.themoviedb.org/3/movies/get-movie-details
+    def get_movie_details_by_id(self, movie_id):
+        query_url = "https://api.themoviedb.org/3/movie/"+str(movie_id)+"?api_key="+self.api_key+"&language="+self.language
         response = requests.get(query_url)    # Get response message
         json_data = response.json()
         return json_data
@@ -198,7 +236,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28"):
+    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28", include_adult="true"):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -208,7 +246,7 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult=false&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult="+include_adult+"&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -280,6 +318,12 @@ if __name__ == '__main__':
 # Test discover_movies:
     print("Testing: discover_movies based on given genre")
     movie_list = TMDB_assistant.discover_movies(page=100, gener_id=28)
+    print(movie_list)
+
+# Test keyword search:
+    print("Testing: discover_movies based on keyword")
+
+    movie_list = TMDB_assistant.search_movie_by_keyword(keyword, page=1)
     print(movie_list)
 
 # Test get_movie_by_id 

@@ -22,11 +22,15 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # path('',views.home,name='home'),
     path('api/reset_server/',views.reset_server,name='reset_server'),
+    path('api/get_all_question/',views.get_all_question,name='get_all_question'),
+    # path('api/get_next_question/',views.get_next_question,name='get_next_question'),
+    path('api/user_login/',views.user_login,name='user_login'),
+    path('api/user_logout/',views.user_logout,name='user_logout'),
 # =================================== Nightly Testing
     path('api/hello/',views.hello,name='hello'),
     path('api/get_permissions_link/',views.get_permissions_link,name='get_permissions_link'),
     path('api/create_user_session/',views.create_user_session,name='create_user_ses1sion'),
-# =================================== page Status management 
+# =================================== Page Status management 
     path('api/get_browser_status/',views.get_browser_status,name='get_browser_status'),
     path('api/update_last_movie_id/',views.update_last_movie_id,name='update_last_movie_id'),
     path('api/update_last_genere_text/',views.update_last_genere_text,name='update_last_genere_text'),
@@ -41,16 +45,14 @@ urlpatterns = [
     path('api/add_a_favorite_movie/',views.add_a_favorite_movie,name='add_a_favorite_movie'),
     path('api/get_current_favorite_list/',views.get_current_favorite_list,name='get_current_favorite_list'),
 # --------------------------------IBM relevant request    -----------
-    path('api/get_all_question/',views.get_all_question,name='get_all_question'),
-    path('api/get_next_question/',views.get_next_question,name='get_next_question'),
     path('api/set_up_languages/',views.set_up_languages,name='set_up_languages'),
     path('api/post_answer/',views.post_answer,name='post_answer'),
     path('api/get_IBM_response/',views.get_IBM_response,name='get_IBM_response'),
 # --------------------------------Movie relevant request    -----------
     path('api/get_movie_by_id/',views.get_movie_by_id,name='get_movies'),
+    path('api/search_movie_by_keyword/',views.search_movie_by_keyword,name='search_movie_by_keyword'),
     path('api/get_movie_trailer_link/',views.get_movie_trailer_link,name='get_movie_trailer_link'),
     path('api/get_movie_overview/',views.get_movie_overview,name='get_movie_overview'),
-    
     path('api/get_popular_movies/',views.get_popular_movies,name='get_popular_movies'),
     path('api/get_latest_movie/',views.get_latest_movie,name='get_latest_movie'),
     path('api/get_upcoming_movie/',views.get_upcoming_movie,name='get_upcoming_movie'),
