@@ -35,7 +35,7 @@ API = {
   "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/1e0763c1010f4e268cfe0a32c0c9988f::serviceid:ServiceId-66e6b35d-3825-4d42-91c6-2f9139ca90eb",
   "url": "https://api.us-south.language-translator.watson.cloud.ibm.com/instances/af931a5f-645c-43ee-a82d-2051dce96ed4"
 }
-
+   
 # Set up TMDB_assistant
 api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
