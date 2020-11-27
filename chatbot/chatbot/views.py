@@ -182,7 +182,7 @@ def get_all_question(request):
 # @api_view(['GET'])
 # def get_next_question(request):
 #     return Response(
-#       data=[server.get_next_question(),{"movieList": server.movieList}]
+#       data=[server.get_next_question(),{"movieList": server.data["movieList"]}]
 #     )
 
 # Need username as param
@@ -411,7 +411,7 @@ def update_user_info(request):
 #         movieList.append(movie_json_object)      
 
 #     return Response(
-#       data={"movieList": movieList}
+#       data={"movieList": server.data["movieList"]}
 #     )
 @api_view(['GET'])
 def search_movie_by_keyword(request):
@@ -590,7 +590,7 @@ def post_answer(request):
     #     # return the next question along with the current movie list
     #     data=[
     #         translated_question,
-    #         {"movieList": server.movieList}
+    #         {"movieList": server.data["movieList"]}
     #       ]
     #   )
 
@@ -636,7 +636,7 @@ def post_answer(request):
         if exist:
           robot_response = f'Found your requested genre "{user_answer}" movies!'
           # Update the movieList
-          server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
+          server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
           assistant.end_session()
         else:
           robot_response = "Error, we don't have the result you are asking!"
@@ -652,5 +652,5 @@ def post_answer(request):
           print(msg)
           print(robot_response)
         return Response(
-            data= {"robotResponse": robot_response, "movieList": server.movieList, "exist": exist}
+            data= {"robotResponse": robot_response, "movieList": server.data["movieList"], "exist": exist}
         )
