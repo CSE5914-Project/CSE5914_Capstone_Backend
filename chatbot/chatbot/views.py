@@ -152,6 +152,7 @@ class Server():
     # Get response from IBM assistant:
     assistant.create_session()
     robot_response = assistant.ask_assistant(user_answer)
+    print(f"Result from process_user_input:{robot_response}")
     assistant.end_session()
     return robot_response
 
@@ -567,6 +568,7 @@ def get_IBM_response(request):
   # Get response from IBM assistant:
   assistant.create_session()
   robot_response = assistant.ask_assistant(user_answer)
+  print(f"Result from get_IBM_response:{robot_response}")
   assistant.end_session()
   return Response(
     data= {"robotResponse": robot_response}
@@ -619,7 +621,9 @@ def post_answer(request):
           
         # Use IBM assistant to search movie based on the genre keywords 
         user_answer = assistant.ask_assistant(user_answer)
-        user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
+        print(f"Result from post_answer:{user_answer}")
+        # user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
+        # print(user_answer)
 
         # Step3: Checking whether the requested genere supported by TMDB. if requested genre doesn't exist, return a error response message
         gener_list = server.get_genre_list()  # Update the genre list in server object
