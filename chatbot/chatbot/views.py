@@ -387,7 +387,7 @@ def update_user_info(request):
   )
 
 # -------------------------TMDB API Call ------------------------
-# Return one or more movie json objects based on given query keyword
+# search_movie_by_keyword return the movie id, not json object
 # @api_view(['GET'])
 # def search_movie_by_keyword(request):
 #     keyword = request.query_params["keyword"]
@@ -413,6 +413,8 @@ def update_user_info(request):
 #     return Response(
 #       data={"movieList": server.data["movieList"]}
 #     )
+
+# TMDB_assistant.search_movie return all the movie json object(Differ from search_movie_by_keyword), supported by https://developers.themoviedb.org/3/search/search-movies
 @api_view(['GET'])
 def search_movie_by_keyword(request):
     keyword = request.query_params["keyword"]
@@ -572,6 +574,12 @@ def get_IBM_response(request):
     data= {"robotResponse": robot_response}
   )
 
+# @api_view(['GET'])
+# def get_good_movies_based_on_genre(request):
+
+# @api_view(['GET'])
+# def get_bad_movies_based_on_genre(request):
+
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
 @api_view(['GET'])
 def post_answer(request):
@@ -636,7 +644,12 @@ def post_answer(request):
         if exist:
           robot_response = f'Found your requested genre "{user_answer}" movies!'
           # Update the movieList
-          server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
+          # server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
+          # Get the GOOD movie list ==> The result might not necessary to be popular, but at least 50 people say it's GOOD
+          server.data["movieList"] = good_movie_list = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.desc&vote_count.gte=50")
+          # Get the BAD movie list ==> The result might not necessary to be popular, but at least 50 people say it's BAD
+          bad_movie_list = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.asc&vote_count.gte=50")
+
           assistant.end_session()
         else:
           robot_response = "Error, we don't have the result you are asking!"
@@ -652,5 +665,10 @@ def post_answer(request):
           print(msg)
           print(robot_response)
         return Response(
-            data= {"robotResponse": robot_response, "movieList": server.data["movieList"], "exist": exist}
+            data= {
+              "robotResponse": robot_response, 
+              "good_movie_list": good_movie_list, 
+              "bad_movie_list": bad_movie_list, 
+              "exist": exist
+            }
         )
