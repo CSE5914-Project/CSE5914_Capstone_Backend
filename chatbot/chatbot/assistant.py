@@ -14,7 +14,7 @@ class Assistant:
     def __init__(self):
         self.session_id = ''
         self.create_session()
-        print(self.session_id)
+        print(f"IBM Assistant Session ID: {self.session_id}")
 
     def create_session(self):
         session = self.assistant.create_session(self.ASSISTANT_ID).get_result()
@@ -39,8 +39,8 @@ class Assistant:
         """
         if self.session_id == '':
             self.create_session()
-        response = self.assistant.message(assistant_id=self.ASSISTANT_ID, session_id=self.session_id,
-                                          input={'text': message}).get_result()
+        response = self.assistant.message(assistant_id=self.ASSISTANT_ID, session_id=self.session_id,input={'text': message}).get_result()
+        # print(f"response: {response}")
         return response.get('output').get('generic')[0].get('text')
 
     def end_session(self):
