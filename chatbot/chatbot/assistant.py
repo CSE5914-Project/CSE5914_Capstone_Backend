@@ -43,16 +43,34 @@ class Assistant:
                                           input={'text': message}).get_result()
         return response.get('output').get('generic')[0].get('text')
 
+
+    def get_intent(self,message):
+        if self.session_id == '':
+            self.create_session()
+        response = self.assistant.message(assistant_id=self.ASSISTANT_ID, session_id=self.session_id,
+                                          input={'text': message}).get_result()
+        intents = response.get('output').get('intents',[])
+        if len(intents) > 0:
+            return [intents[0].get('intent')]
+        else:
+            return []
+
     def end_session(self):
         self.assistant.delete_session(self.ASSISTANT_ID, self.session_id).get_result()
         self.session_id = ''
 
 # Example usage of Assistant
 # --------------------------
-assistant = Assistant()
-print(assistant.ask_assistant("I speak English"))
-print(assistant.ask_assistant('yes i am'))
-print(assistant.ask_assistant('I want to watch action movie today'))
-print(assistant.ask_assistant('no i am not'))
-print(assistant.ask_assistant("show me some sci fi movie"))
-assistant.end_session
+if __name__ == '__main__':
+
+    assistant = Assistant()
+    print(assistant.ask_assistant("I speak English"))
+    print(assistant.ask_assistant('yes i am'))
+    print(assistant.ask_assistant('I want to watch action movie today'))
+    print(assistant.ask_assistant('no i am not'))
+    print(assistant.ask_assistant("show me some sci fi movie"))
+    print(assistant.get_intent("show me some sci-fi movie"))
+    print(assistant.get_intent("i would like some fiction movies"))
+    print(assistant.get_intent("i would like something fits summer vibe"))
+    print(assistant.get_intent("any recommendations for my children?"))
+    assistant.end_session

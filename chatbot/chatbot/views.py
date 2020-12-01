@@ -201,7 +201,7 @@ def user_login(request):
     data= response
   )
 
-@api_view(['GET'])
+@api_view(['POST'])
 def user_logout(request):
   # What is the user name?
   username = server.data["userinfo"]["username"]
@@ -407,7 +407,7 @@ def search_movie_by_sentence_keyword(request,top_n = 15):
     user_response = request.query_params["answerText"]
     page = request.query_params["page"]
     keywords = nlu.get_keywords(user_response)
-    
+
     if len(keywords) > 0:
       json_data = TMDB_assistant.search_movie_by_keyword(keywords[0], page)
     else:
@@ -416,6 +416,16 @@ def search_movie_by_sentence_keyword(request,top_n = 15):
     return Response(
       data={"movieList": json_data}
     )
+def _search_movie_by_sentence_keyword(msg,top_n = 15):
+    print(msg)
+    keywords = nlu.get_keywords(msg)
+    print(keywords)
+    if len(keywords) > 0:
+      json_data = TMDB_assistant.search_movie_by_keyword(keywords[0])
+    else:
+      json_data = TMDB_assistant.get_popular_movies(top_n)
+
+    return {"movieList": json_data, 'keywords':keywords}
 
 @api_view(['GET'])
 def get_movie_by_id(request):
@@ -530,7 +540,7 @@ def hello(request):
   return JsonResponse({'response_text':'hello world!'})
 
 # Front end will post the language, e.g. en-US, and the TMDB server will update the language.
-@api_view(["POST"])
+@api_view(["GET"])
 def set_up_languages(request):
   language = request.data["language"]
   print(f"language: {language}")
@@ -623,4 +633,90 @@ def post_answer(request):
           print(robot_response)
         return Response(
             data= {"robotResponse": robot_response, "movieList": server.movieList}
+        )
+
+
+# Possible question: "What genre do you like to watch?"
+@api_view(['GET'])
+def post_answer_multiturn(request):
+    """
+    List all code snippets, or create a new snippet.
+    """
+    # # If the request 'Get' method, the next reuqestion and current movieList will be returned
+    # if request.method == 'POST':
+    #   question = server.get_next_question()
+    #   # if the user don't speak english, convert to corresponding one
+    #   if server.data["userinfo"]["language"] != "en":
+    #     response = translator.translate([question], API, "en", server.data["userinfo"]["language"])
+    #     # print(response.json())
+    #     question = response.json()['translations'][0]['translation']
+    #   return Response(
+    #     # return the next question along with the current movie list
+    #     data=[
+    #         translated_question,
+    #         {"movieList": server.movieList}
+    #       ]
+    #   )
+
+    # If the request 'POST' method, the robot_response and the updated movieList will be returned
+    # e.g. user say: { "questionCode": 1, "answerText": "War", "page":1} ==> {"robotResponse": "Found you requested genre War with id 10752", 
+    # "movieList": { ... }}
+    if request.method == 'GET':
+        # Step1: Get user's response, and the page info to searching corresponding genre movies
+        user_prompt = request.query_params["answerText"]
+        page = int(request.query_params['page'])
+
+        # Step2: Get response from IBM assistant:
+        assistant.create_session()
+        # If user don't speak english, we need to convert it to en, in order to processing the 'genre' keyword filtering
+        if server.data["userinfo"]["language"] != "en":
+          # print(f"user_answer: {user_answer}")
+          response = translator.translate([user_answer], API, server.data["userinfo"]["language"], "en")
+          user_prompt = response.json()['translations'][0]['translation']
+          
+        # Use IBM assistant to search movie based on the genre keywords 
+        user_answer = assistant.ask_assistant(user_prompt)
+        user_intent = assistant.get_intent(user_prompt)
+        user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
+        print('User intent: ', user_intent)
+        if len(user_intent) > 0 and user_intent[0] == 'keyword':
+          print('Keyword search...')
+          robot_response = _search_movie_by_sentence_keyword(user_prompt)
+          if len(robot_response['keywords']) > 0:
+            robot_response['robotResponse'] = 'Here are some movies related to "{}"'.format(robot_response['keywords'][0])
+          else:
+            robot_response['robotResponse'] = "Here is what we found"
+          robot_response['intent'] = user_intent
+          return Response(data=robot_response)
+        else:
+          print('Genre search...')
+          # Step3: Checking whether the requested genere supported by TMDB. if requested genre doesn't exist, return a error response message
+          gener_list = server.get_genre_list()  # Update the genre list in server object
+          exist = False # whether there is requested genre in TMDB database
+          # print(f"gener_list: {gener_list}")
+          gener_id = 0
+          for item in gener_list:
+            genre_type = item['name']
+            if genre_type == user_answer:
+              gener_id = item["id"]
+              exist = True
+              server.user_genre = gener_id
+          # Update the robot_response 
+          if exist:
+            robot_response = f"Found you requested genre {user_answer} with id {gener_id}"
+            # Update the movieList
+            server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id)
+            assistant.end_session()
+          else:
+            robot_response = "Error, we don't have the result you are asking!"
+
+          # ==> THe robot response doesn't matter, we never gonna show this to user!!
+          # print(f"source_lan: en, target_lang: robot_response: {robot_response}")
+          # Step4: Convert and return the robot_response according to the language user speaks
+          # response = translator.translate([robot_response], API, "en", server.data["userinfo"]["language"])
+          # print(response)
+          # robot_response = response.json()['translations'][0]['translation']
+
+        return Response(
+            data= {"robotResponse": robot_response, "movieList": server.movieList,'intent': user_intent}
         )

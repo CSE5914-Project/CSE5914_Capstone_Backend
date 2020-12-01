@@ -21,6 +21,21 @@ class Test_TMDB_Movies(unittest.TestCase):
     # def get_top_n_popular_movie():
     #     pass
 
+class Test_API(unittest.TestCase):
+
+    def test_post_answer_multiturn_1(self):
+        data={"questionCode": 1, "answerText": "I would like something for my family",'page':1}
+        r = requests.get("http://127.0.0.1:8000/api/post_answer_multiturn/", params=data)
+
+        self.assertEqual(r.json()['movieList']['id'], movie_id, "Should be Equal")
+
+    def test_post_answer_multiturn_1(self):
+        data={"questionCode": 1, "answerText": "I would like something for my family",'page':1}
+        r = requests.get("http://127.0.0.1:8000/api/post_answer_multiturn/", params=data)
+        print(r)
+        print(f"User answer: {r.json()}")
+
+
 if __name__ == '__main__':
     unittest.main()
     # test_get_movies1()
