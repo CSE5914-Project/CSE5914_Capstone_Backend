@@ -561,7 +561,7 @@ def get_IBM_response(request):
 
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
 @api_view(['GET'])
-def post_answer(request):
+def post_answer_v0(request):
     """
     List all code snippets, or create a new snippet.
     """
@@ -638,7 +638,7 @@ def post_answer(request):
 
 # Possible question: "What genre do you like to watch?"
 @api_view(['GET'])
-def post_answer_multiturn(request):
+def post_answer(request):
     """
     List all code snippets, or create a new snippet.
     """
