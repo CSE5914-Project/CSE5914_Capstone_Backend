@@ -645,6 +645,7 @@ def post_answer(request):
             exist = True
             server.user_genre = gener_id
         # Update the robot_response 
+        good_movie_list = bad_movie_list = {}
         if exist:
           robot_response = f'Found your requested genre "{user_answer}" movies!'
           # Update the movieList
@@ -657,6 +658,7 @@ def post_answer(request):
           assistant.end_session()
         else:
           robot_response = "Error, we don't have the result you are asking!"
+
 
         # ==> THe robot response doesn't matter, we never gonna show this to user!!
         # print(f"source_lan: en, target_lang: robot_response: {robot_response}")
