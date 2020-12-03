@@ -658,7 +658,7 @@ def post_answer(request):
         # Use IBM NLU to extract the keyword, sentiment, cast/crews, and movie title: ==> Not robust enough, required len(user_answer)>45 characters
         with_keyword = None
         keyword_exist = False
-        if len(user_answer) > 25:
+        if len(user_answer) > 15:
           with_keyword = nlu.get_keywords(user_answer)[0] # Return the first keyword
           print(f"with_keyword: {with_keyword}")
           if with_keyword:

@@ -113,9 +113,9 @@ print()
 # print()
 
 
-print(nlu.get_keywords('I want to watch action movie today'))
-print(nlu.get_keywords('no i am not'))
-print(nlu.get_keywords("show me some sci fi movie"))
+print(nlu.get_keywords('i want to watch Titanic .................'))
+print(nlu.get_keywords('i really really want to watch Titanic'))
+print(nlu.get_keywords("i want to watch transformer"))
 
 # ==> Result:
 # Keyword: ['Star Trek', "Tom cruise's movies"]
