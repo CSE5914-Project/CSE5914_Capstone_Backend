@@ -85,8 +85,7 @@ class NLUnderstand:
         return movies
 
 # if __name__ == '__main__':
-print("\n=======> Example usage of NLP")
-# Example usage of NLP
+print("\n=======> Example usage of NLU")
 # --------------------------
 nlu = NLUnderstand()
 # text = 'I love watching Tom cruise\'s movies and Star Trek'
