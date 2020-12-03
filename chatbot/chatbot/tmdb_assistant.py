@@ -236,7 +236,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, page=1, sort_by="popularity.desc", gener_id="28", include_adult="true"):
+    def discover_movies(self, page=1, sort_by="popularity.desc", gener_id="28", include_adult="true", with_keyword=None):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -247,6 +247,8 @@ class TMDB_assistant():
                 with_people: str, what character you want to watch?
         """
         query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by="+sort_by+"&include_adult="+include_adult+"&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
+        if with_keyword:
+            query_url+='&with_keywords='+with_keyword
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -290,11 +292,12 @@ class TMDB_guest_session(TMDB_assistant):
         pass
     
 
+print("\n========> TMDB Testing samples")
 api_key="02834833a9dfe29dc2c55eb707c5a73c"
 tmdb_assistant = TMDB_assistant(api_key, "en-US")
 print(f"Supported genres: {[genre['name'] for genre in tmdb_assistant.genres_list]}")
-# movie_list = tmdb_assistant.search_movie('Transformers', page=1, include_adult="true")
-# print(f"Test Result of search_movie_by_keyword(lens): {len(movie_list['results'])}")
+movie_list = tmdb_assistant.search_movie('Transformers', page=1, include_adult="true")
+print(f"Test Result of search_movie_by_keyword(lens): {len(movie_list['results'])}")
 
 # ==> The result might not necessary to be popular, but at least 50 people say it's good
 good_movie_list = tmdb_assistant.discover_movies(page=1, sort_by="vote_average.desc&vote_count.gte=50", gener_id="28", include_adult="true")

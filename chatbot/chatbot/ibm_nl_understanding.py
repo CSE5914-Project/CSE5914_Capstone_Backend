@@ -84,12 +84,42 @@ class NLUnderstand:
 
         return movies
 
-
+# if __name__ == '__main__':
+print("\n=======> Example usage of NLP")
 # Example usage of NLP
 # --------------------------
-# nlu = NLUnderstand()
-# text = 'I love watching Tom cruise\'s movies and Star Trek'
-# print(nlu.get_keywords(text))
-# print(nlu.get_sentiment(text))
-# print(nlu.get_people(text))
-# print(nlu.get_movies(text))
+nlu = NLUnderstand()
+text = 'I love watching Tom cruise\'s movies and Star Trek'
+print(f'text1: {text}')
+print(f"Keyword: {nlu.get_keywords(text)}")
+print(f"Sentiment scores: {nlu.get_sentiment(text)}")
+print(f"Cast/Crews: {nlu.get_people(text)}")
+print(f"Target Movie: {nlu.get_movies(text)}")
+print()
+
+text = 'I want to watch Star Trek moives'
+print(f'text2: {text}')
+print(f"Keyword: {nlu.get_keywords(text)}")
+print(f"Sentiment scores: {nlu.get_sentiment(text)}")
+print(f"Cast/Crews: {nlu.get_people(text)}")
+print(f"Target Movie: {nlu.get_movies(text)}")
+print()
+
+text = 'Search for Transformer'
+print(f'text3: {text}')
+print(f"Keyword: {nlu.get_keywords(text)}")
+print(f"Sentiment scores: {nlu.get_sentiment(text)}")
+print(f"Cast/Crews: {nlu.get_people(text)}")
+print(f"Target Movie: {nlu.get_movies(text)}")
+print()
+
+# ==> Result:
+# Keyword: ['Star Trek', "Tom cruise's movies"]
+# Sentiment scores: 0.975645
+# Cast/Crews: ['Tom Cruise']
+# Target Movie: ['Star Trek']
+# Keyword: ['Star Trek moives']
+# Sentiment scores: 0.608018
+# Cast/Crews: ['Trek moives']
+# Target Movie: []
+
