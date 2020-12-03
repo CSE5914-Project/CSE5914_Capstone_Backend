@@ -607,7 +607,7 @@ def _reorder_movieList(good_movie_list, bad_movie_list):
       else:
         total_list.append(bad_movie_list.pop(0))
   print(f"Total movies in the list: {len(total_list)}")
-  return total_list
+  return {'results':total_list}
 
 
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
@@ -663,13 +663,6 @@ def post_answer(request):
           print(f"with_keyword: {with_keyword}")
           if with_keyword:
             keyword_exist = True
-        # sentiment = nlu.get_sentiment(user_answer)
-        # crews = nlu.get_people(user_answer)
-        # movie_title = nlu.get_movies(user_answer)
-        # print(f"Keyword: {nlu.get_keywords(user_answer)}")
-        # print(f"Sentiment scores: {nlu.get_sentiment(user_answer)}")
-        # print(f"Cast/Crews: {nlu.get_people(user_answer)}")
-        # print(f"Target Movie: {nlu.get_movies(user_answer)}")
 
         # Use IBM assistant to search movie based on the genre keywords 
         user_answer = assistant.ask_assistant(user_answer)
@@ -698,12 +691,9 @@ def post_answer(request):
           # Update the movieList
           # server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
           # Get the GOOD movie list ==> The result might not necessary to be popular, but at least 50 people say it's GOOD
-          good_movie_list = server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.desc&vote_count.gte=50", with_keyword=with_keyword)
+          good_movie_list = server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.desc&vote_count.gte=50")
           # Get the BAD movie list ==> The result might not necessary to be popular, but at least 50 people say it's BAD
-          bad_movie_list = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.asc&vote_count.gte=50", with_keyword=with_keyword)
-          # If genre and keywords both exist
-          if keyword_exist:
-            robot_response = f'Found your requested movies with genre "{user_answer}" and keyword "{with_keyword}"! '
+          bad_movie_list = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.asc&vote_count.gte=50")
         elif keyword_exist:
           exist = True
           robot_response = f'Found your requested movies with keyword "{with_keyword}"! '
