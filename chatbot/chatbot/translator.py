@@ -32,17 +32,17 @@ def translate(sentence_list, api, src_lang, tgt_lang):
     return r
 
 
-if __name__ == '__main__':
-    sentence_list = ["Hello!", "What's going on?"]
-    source_lang = 'en'
-    target_lang = 'zh'
-    api = API
-    # print([type(i) for i in API.keys()])
-    # print(API[list(API.keys())[0]])
-    msg = translate(sentence_list, API, source_lang, target_lang)
-    translation = [i['translation'] for i in json.loads(msg.text)['translations']]
-    # print(msg.text)
-    print('Translate {} to {}:\n'.format(source_lang,target_lang))
-    for sent, translate in zip(sentence_list, translation):
-        print('Original: {}\nTranslate: {}\n'.format(sent,translate))
-
+# if __name__ == '__main__':
+print('\n=========> Translator Testing samples: ')
+sentence_list = ["Hello!", "What's going on?"]
+source_lang = 'en'
+target_lang = 'zh'
+api = API
+# print([type(i) for i in API.keys()])
+# print(API[list(API.keys())[0]])
+msg = translate(sentence_list, API, source_lang, target_lang)
+translation = [i['translation'] for i in json.loads(msg.text)['translations']]
+# print(msg.text)
+print('Translate {} to {}:\n'.format(source_lang,target_lang))
+for sent, translate in zip(sentence_list, translation):
+    print('Original: {}\nTranslate: {}\n'.format(sent,translate))

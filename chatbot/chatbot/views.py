@@ -16,9 +16,11 @@ from . import assistant
 from . import tmdb_assistant
 from . import translator
 from . import nlu
+from . import ibm_nl_understanding
 import requests
 import json
 import os
+
 from enum import Enum
 # For language detection in post_answer, https://pypi.org/project/langdetect/
 from langdetect import detect
@@ -35,11 +37,14 @@ API = {
   "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/1e0763c1010f4e268cfe0a32c0c9988f::serviceid:ServiceId-66e6b35d-3825-4d42-91c6-2f9139ca90eb",
   "url": "https://api.us-south.language-translator.watson.cloud.ibm.com/instances/af931a5f-645c-43ee-a82d-2051dce96ed4"
 }
-
+   
 # Set up TMDB_assistant
 api_key = "02834833a9dfe29dc2c55eb707c5a73c"
 language = "en-US"
 TMDB_assistant = tmdb_assistant.TMDB_assistant(api_key, language)
+
+# Set up IBM NLP module
+nlu = ibm_nl_understanding.NLUnderstand()
 
 class movieSource(Enum):
   default = "popular"
@@ -152,6 +157,7 @@ class Server():
     # Get response from IBM assistant:
     assistant.create_session()
     robot_response = assistant.ask_assistant(user_answer)
+    print(f"Result from process_user_input:{robot_response}")
     assistant.end_session()
     return robot_response
 
@@ -182,7 +188,7 @@ def get_all_question(request):
 # @api_view(['GET'])
 # def get_next_question(request):
 #     return Response(
-#       data=[server.get_next_question(),{"movieList": server.movieList}]
+#       data=[server.get_next_question(),{"movieList": server.data["movieList"]}]
 #     )
 
 # Need username as param
@@ -387,7 +393,7 @@ def update_user_info(request):
   )
 
 # -------------------------TMDB API Call ------------------------
-# Return one or more movie json objects based on given query keyword
+# search_movie_by_keyword return the movie id, not json object
 # @api_view(['GET'])
 # def search_movie_by_keyword(request):
 #     keyword = request.query_params["keyword"]
@@ -411,8 +417,10 @@ def update_user_info(request):
 #         movieList.append(movie_json_object)      
 
 #     return Response(
-#       data={"movieList": movieList}
+#       data={"movieList": server.data["movieList"]}
 #     )
+
+# TMDB_assistant.search_movie return all the movie json object(Differ from search_movie_by_keyword), supported by https://developers.themoviedb.org/3/search/search-movies
 @api_view(['GET'])
 def search_movie_by_keyword(request):
     keyword = request.query_params["keyword"]
@@ -567,10 +575,40 @@ def get_IBM_response(request):
   # Get response from IBM assistant:
   assistant.create_session()
   robot_response = assistant.ask_assistant(user_answer)
+  print(f"Result from get_IBM_response:{robot_response}")
   assistant.end_session()
   return Response(
     data= {"robotResponse": robot_response}
   )
+
+# @api_view(['GET'])
+# def get_good_movies_based_on_genre(request):
+
+# @api_view(['GET'])
+# def get_bad_movies_based_on_genre(request):
+
+def _reorder_movieList(good_movie_list, bad_movie_list):
+  import random
+  total_list = []
+  # Genre movie doesn't exist, user only provides keywords
+  if len(bad_movie_list)==0:
+    total_list = good_movie_list
+  # Genre exist ==> So we should have two list
+  elif len(bad_movie_list)>0:
+    n_movies = 0 
+    # limit = len(good_movie_list['results']) + len(bad_movie_list['results'])
+    good_movie_list = good_movie_list['results']
+    bad_movie_list = bad_movie_list['results']
+    # Very unlikely we would get the order that [19 bad movie, 10 good movie, 1 bad movie]
+    while(len(good_movie_list)>0 and n_movies<30):
+      n_movies+=1
+      if random.random() > 0.3:
+        total_list.append(good_movie_list.pop(0))
+      else:
+        total_list.append(bad_movie_list.pop(0))
+  print(f"Total movies in the list: {len(total_list)}")
+  return {'results':total_list}
+
 
 # Assume the post_answer method only take care one question: "What genre do you like to watch?"
 @api_view(['GET'])
@@ -590,7 +628,7 @@ def post_answer(request):
     #     # return the next question along with the current movie list
     #     data=[
     #         translated_question,
-    #         {"movieList": server.movieList}
+    #         {"movieList": server.data["movieList"]}
     #       ]
     #   )
 
@@ -613,33 +651,60 @@ def post_answer(request):
           response = translator.translate([user_answer], API, src_lang, "en")
           print(f"Response: {response}")
           user_answer = response.json()['translations'][0]['translation']
-          print(f"User_answer: {user_answer}")
           # response = translator.translate([user_answer], API, src_lang, "en")
           # user_answer = [i['translation'] for i in json.loads(response.text)['translations']]
+        print(f"User_answer: {user_answer}")
           
+        # Use IBM NLU to extract the keyword, sentiment, cast/crews, and movie title: ==> Not robust enough, required len(user_answer)>45 characters
+        with_keyword = None
+        keyword_exist = False
+        if len(user_answer) > 15:
+          with_keyword = nlu.get_keywords(user_answer)[0] # Return the first keyword
+          print(f"with_keyword: {with_keyword}")
+          if with_keyword:
+            keyword_exist = True
+
         # Use IBM assistant to search movie based on the genre keywords 
         user_answer = assistant.ask_assistant(user_answer)
-        user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
+        print(f"Result from post_answer:{user_answer}")
+        # user_answer = user_answer.capitalize()  # some query preprocessing, so "action" ==> "Action"
+        # print(user_answer)
 
         # Step3: Checking whether the requested genere supported by TMDB. if requested genre doesn't exist, return a error response message
         gener_list = server.get_genre_list()  # Update the genre list in server object
-        exist = False # whether there is requested genre in TMDB database
+        genre_exist = False # whether there is requested genre in TMDB database
         # print(f"gener_list: {gener_list}")
         gener_id = 0
         for item in gener_list:
           genre_type = item['name']
           if genre_type == user_answer:
             gener_id = item["id"]
-            exist = True
+            genre_exist = True
             server.user_genre = gener_id
+
         # Update the robot_response 
-        if exist:
-          robot_response = f'Found your requested genre "{user_answer}" movies!'
+        good_movie_list = bad_movie_list = {}
+        exist = False
+        if genre_exist:
+          exist = True
+          robot_response = f'Found your requested movies with genre "{user_answer}"!'
           # Update the movieList
-          server.movieList = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
-          assistant.end_session()
+          # server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'])
+          # Get the GOOD movie list ==> The result might not necessary to be popular, but at least 50 people say it's GOOD
+          good_movie_list = server.data["movieList"] = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.desc&vote_count.gte=50")
+          # Get the BAD movie list ==> The result might not necessary to be popular, but at least 50 people say it's BAD
+          bad_movie_list = TMDB_assistant.discover_movies(page, gener_id=gener_id, include_adult=request.query_params['include_adult'], sort_by="vote_average.asc&vote_count.gte=50")
+          # combine two list into one with certain amount of randomness
+          server.data["movieList"] = _reorder_movieList(good_movie_list, bad_movie_list)
+        elif keyword_exist:
+          exist = True
+          robot_response = f'Found your requested movies with keyword "{with_keyword}"! '
+          good_movie_list =  TMDB_assistant.search_movie(with_keyword, page, include_adult=request.query_params["include_adult"])  
+          # bad_movie_list = TMDB_assistant.discover_movies(page, include_adult=request.query_params['include_adult'], sort_by="vote_average.asc&vote_count.gte=50", with_keyword=with_keyword)
+          server.data["movieList"] = good_movie_list
         else:
           robot_response = "Error, we don't have the result you are asking!"
+        assistant.end_session()
 
         # ==> THe robot response doesn't matter, we never gonna show this to user!!
         # print(f"source_lan: en, target_lang: robot_response: {robot_response}")
@@ -649,8 +714,13 @@ def post_answer(request):
         if src_lang!=target_lang:
           msg = translator.translate([robot_response], API, src_lang, target_lang)
           robot_response = [i['translation'] for i in json.loads(msg.text)['translations']]
-          print(msg)
-          print(robot_response)
+          print(f"msg: {msg}")
+        print(f"robot_response: {robot_response}")
+
         return Response(
-            data= {"robotResponse": robot_response, "movieList": server.movieList, "exist": exist}
+            data= {
+              "robotResponse": robot_response, 
+              "movieList": server.data["movieList"],
+              "exist": exist
+            }
         )

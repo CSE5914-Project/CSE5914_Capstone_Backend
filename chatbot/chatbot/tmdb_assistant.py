@@ -7,7 +7,7 @@ class TMDB_assistant():
         self.api_key = api_key
         self.language = language
         # genres_list: A dict, with two item: id and name, e.g. {"id": 35 "name": "Comedy"}
-        genres_list = self.get_all_genres()   
+        self.genres_list = self.get_all_genres()   
 
     def get_permissions_link(self):
         query_str = "https://api.themoviedb.org/3/authentication/token/new?api_key=" +self.api_key
@@ -178,7 +178,7 @@ class TMDB_assistant():
         return result
 
     # ------------------------------------TMDB API call ---------------------
-    # Reference: https://developers.themoviedb.org/3/search/search-keywords
+    # search_movie_by_keyword return the movie id, not json object, supported by https://developers.themoviedb.org/3/search/search-keywords
     def search_movie_by_keyword(self, keyword, page=1):
         '''Return a list of json object{id: 1234, name: xxxxx}
         '''
@@ -187,7 +187,7 @@ class TMDB_assistant():
         json_data = response.json()
         return json_data
 
-    # (Differ from search_movie_by_keyword) Supported by https://developers.themoviedb.org/3/search/search-movies
+    # search_movie return all the movie json object(Differ from search_movie_by_keyword), supported by https://developers.themoviedb.org/3/search/search-movies
     def search_movie(self, query, page=1, include_adult="true"):
         '''Return a list of json object
         '''
@@ -236,7 +236,7 @@ class TMDB_assistant():
         json_data = r.json()
         return json_data
     
-    def discover_movies(self, page, sort_by="popularity.desc", gener_id="28", include_adult="true"):
+    def discover_movies(self, page=1, sort_by="popularity.desc", gener_id="28", include_adult="true", with_keyword=None):
         """Discover
             Argument:
                 language: str, default "en-US"
@@ -246,7 +246,9 @@ class TMDB_assistant():
                 with_keyword: str, what keyword want to search for?
                 with_people: str, what character you want to watch?
         """
-        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by=popularity.desc&include_adult="+include_adult+"&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
+        query_url = "https://api.themoviedb.org/3/discover/movie?api_key="+self.api_key+"&language="+self.language+"&sort_by="+sort_by+"&include_adult="+include_adult+"&include_video=false&page="+str(page)+"&with_genres="+str(gener_id)
+        if with_keyword:
+            query_url+='&with_keywords='+with_keyword
         r = requests.get(query_url)
         json_data = r.json()
         return json_data
@@ -290,12 +292,28 @@ class TMDB_guest_session(TMDB_assistant):
         pass
     
 
+print("\n========> TMDB Testing samples")
+api_key="02834833a9dfe29dc2c55eb707c5a73c"
+tmdb_assistant = TMDB_assistant(api_key, "en-US")
+print(f"Supported genres: {[genre['name'] for genre in tmdb_assistant.genres_list]}")
+movie_list = tmdb_assistant.search_movie('Transformers', page=1, include_adult="true")
+print(f"Test Result of search_movie_by_keyword(lens): {len(movie_list['results'])}")
+
+# ==> The result might not necessary to be popular, but at least 50 people say it's good
+good_movie_list = tmdb_assistant.discover_movies(page=1, sort_by="vote_average.desc&vote_count.gte=50", gener_id="28", include_adult="true")
+print(f"Test Result of good movies(lens): {len(good_movie_list['results'])}")
+# print(json.dumps(good_movie_list, indent=2))
+
+# ==> The result might not necessary to be popular, but at least 50 people say it's bad
+bad_movie_list = tmdb_assistant.discover_movies(page=1, sort_by="vote_average.asc&vote_count.gte=50", gener_id="28", include_adult="true")
+print(f"Test Result of bad movies(lens): {len(bad_movie_list['results'])}")
 
 if __name__ == '__main__':
     api_key="02834833a9dfe29dc2c55eb707c5a73c"
     TMDB_assistant = TMDB_assistant(api_key, "en-US")
     # tmp_token = TMDB_assistant.create_user_session()
-
+    print(f"Supported genres: {TMDB_assistant.genres_list}")
+    
     # print(type(TMDB_assistant))
 # Test get_popular_movie
     # print("Testing: get_popular_movies")
@@ -323,8 +341,8 @@ if __name__ == '__main__':
 # Test keyword search:
     print("Testing: discover_movies based on keyword")
 
-    movie_list = TMDB_assistant.search_movie_by_keyword(keyword, page=1)
-    print(movie_list)
+# Test search_movie:
+    movie_list = TMDB_assistant.search_movie('Transformers', page=1, include_adult="true")
 
 # Test get_movie_by_id 
     print("Testing: get_movie_by_id")

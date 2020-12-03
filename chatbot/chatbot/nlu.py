@@ -23,7 +23,6 @@ def get_keywords(user_query):
         return []
     return kwords
 
-
 if __name__ == '__main__':
     response = get_keywords("I just want something i can watch with my family")
     print(json.dumps(response, indent=2))
