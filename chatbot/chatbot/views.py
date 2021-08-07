@@ -53,7 +53,7 @@ class movieSource(Enum):
 
 class Server():
   def __init__(self):
-    self.curr_dir = "data"
+    self.curr_dir = "./data"
     self.user_genre = None
     self.data = {
         "userinfo":{
