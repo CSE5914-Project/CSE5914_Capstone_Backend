@@ -5,7 +5,7 @@
 
 **Project Name:** Chatbot based recommender system based on user profile and rating history
 
-**Technology:** Django, React, TMDB(The movie database) and IBM Cloud 
+**Technology:** Django, React, Travis CI, TMDB(The movie database) and IBM Cloud 
 
 **Description:**
   > The product is constituted by two modules: chatbot data collection and recommendation system. The chatbot module will ask information from the user by initiating a series of prepared questions in human natural language, and users will answer those questions based on the requirements of the recommendation system. The relevant questions might include: What actor do you like? What character do you like?  What is the release date the user wants to watch (e.g. 1950-1990?) After the data collection is over, the user will be given preliminary suggestions, a list of recommended movies. The users will then give feedback as to whether the suggestion is liked or not for further narrowing recommendation. 
