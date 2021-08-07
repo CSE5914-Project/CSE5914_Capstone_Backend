@@ -14,8 +14,8 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 from django.http import JsonResponse
 from . import assistant
 from . import tmdb_assistant
-from . import translator
-from . import nlu
+# from . import translator
+from translator import translate 
 from . import ibm_nl_understanding
 import requests
 import json
@@ -90,7 +90,7 @@ class Server():
 # If you changed language here is what gonna happen: 1) All the question will be covnerted to target language, 2)movie list will be overwirte by popular movies.. ==> SO this funciton is not design for updating server language!!!
   def set_server_language_to(self, target_lang, src_lang="en"):
     # Call the API to do the translation
-    msg = translator.translate(self.question_list, API, src_lang, target_lang)
+    msg = translate(self.question_list, API, src_lang, target_lang)
     # Get a list of translated questions
     translations = [i['translation'] for i in json.loads(msg.text)['translations']]
     # Reset the robot_question
