@@ -17,8 +17,10 @@ from django.contrib import admin
 from django.urls import path
 
 from . import views
+import snippets.views
 
 urlpatterns = [
+    path("", snippets.views.index, name="index"),
     path('admin/', admin.site.urls),
     # path('',views.home,name='home'),
     path('api/reset_server/',views.reset_server,name='reset_server'),
