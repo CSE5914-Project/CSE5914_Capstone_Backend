@@ -45,8 +45,7 @@ class Assistant:
     def get_intent(self,message):
         if self.session_id == '':
             self.create_session()
-        response = self.assistant.message(assistant_id=self.ASSISTANT_ID, session_id=self.session_id,
-                                          input={'text': message}).get_result()
+        response = self.assistant.message(assistant_id=self.ASSISTANT_ID, session_id=self.session_id, input={'text': message}).get_result()
         intents = response.get('output').get('intents',[])
         if len(intents) > 0:
             return [intents[0].get('intent')]
