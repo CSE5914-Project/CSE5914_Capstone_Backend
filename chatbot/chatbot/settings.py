@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'b&3lf9nvs_ug3jq_!-n5ij=1153r6@xa3)_6!eyg8tkrgk8c98'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware'
 ]
 
-ROOT_URLCONF = 'chatbot.urls'
+ROOT_URLCONF = 'chatbot.chatbot.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'chatbot.wsgi.application'
+WSGI_APPLICATION = 'chatbot.chatbot.wsgi.application'
 
 # CORS_ORIGIN_WHITELIST = (
 #     'http://localhost:3000',
@@ -136,14 +136,14 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 # STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
-STATIC_ROOT= "/snippets/"
+STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
 STATIC_URL = '/static/'    
 
 # Extra places for collectstatic to find static files.
 STATICFILES_DIRS = [
     os.path.join(PROJECT_ROOT, 'static'),
 ]
-print(f"BASE_DIR: {BASE_DIR} \nPROJECT_ROOT:{PROJECT_ROOT} \n STATIC_ROOT: {STATIC_ROOT}\nSTATICFILES_DIRS: {STATICFILES_DIRS}")
+print(f"BASE_DIR: {BASE_DIR} \nPROJECT_ROOT:{PROJECT_ROOT} \n STATIC_ROOT: {STATIC_ROOT}\nSTATIC_ROOT:{STATIC_ROOT} \n STATICFILES_DIRS: {STATICFILES_DIRS}")
 
 # Configure Django App for Heroku.
 
