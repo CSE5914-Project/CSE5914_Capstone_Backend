@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'b&3lf9nvs_ug3jq_!-n5ij=1153r6@xa3)_6!eyg8tkrgk8c98'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -55,7 +55,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware'
 ]
 
-ROOT_URLCONF = 'chatbot.chatbot.urls'
+ROOT_URLCONF = 'chatbot.urls'
 
 TEMPLATES = [
     {
@@ -73,7 +73,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'chatbot.chatbot.wsgi.application'
+WSGI_APPLICATION = 'chatbot.wsgi.application'
 
 # CORS_ORIGIN_WHITELIST = (
 #     'http://localhost:3000',
