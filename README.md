@@ -199,6 +199,10 @@ CMD ./launch.sh
 
 ## Final Running Log:
 
+Here is the docker images being built:
+
+![image-20210930204624647](README_img/image-20210930204624647.png)
+
 Here is what you see after being deployed to Heroku as container:
 
 ```bash
