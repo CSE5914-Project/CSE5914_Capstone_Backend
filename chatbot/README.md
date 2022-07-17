@@ -27,5 +27,8 @@ Intall required packages using:
 pip install -r requirements.txt
 
 Running server with command: 
-python manage.py runserver
+```bat
+\env\Scripts\activate.bat
+python chatbot\manage.py runserver
+```
 

@@ -82,3 +82,10 @@ API
   $ .\venv\Scripts\activate
   ```
 
+- How to update to Heroku
+```
+git add .
+git commit -m 'Update'
+git push
+git push heroku timebox5.1:master
+```
