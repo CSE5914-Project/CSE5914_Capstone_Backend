@@ -18,17 +18,50 @@ API
 + [ ] Implement Session
 
 
+## App deployment:
 
-## Installation
+- Reference:
+  - https://docs.google.com/document/d/1W57Pf48E5z1Zg8dsoWrZd1FxkHIqCSrgStXAvqLGQYQ/edit#heading=h.jwaty07wsref
+```bash
+#You need a Procfile to work with heroku, read more here https://devcenter.heroku.com/articles/procfile
+# <process type>: <command>
+web: gunicorn app:app	
+# 'web' is tye process type
+# 'gunicorn app:app' is the command, with format $ gunicorn [OPTIONS] [WSGI_APP] --> It say we will look for a python file, app.py, and run a variable called app
 
-First create a new python environment
+# Make a clean commit
+git add .
+git commit -m "commit"
 
-Intall required packages using:
-pip install -r requirements.txt
+# Push to remote endpoint at heroku, with branch main
+heroku login 
+# If it's first time:
+# heroku apps:create students-flask 	
+git push heroku main
 
-Running server with command: 
-```bat
-\env\Scripts\activate.bat
-python chatbot\manage.py runserver
+# Check any error
+heroku logs --tail
 ```
 
+## How to run
+```bash
+set FLASK_APP=back_end.py
+flask run
+```
+
+## Create virtual env
+```bash
+# Install virtual env
+python3 -m pip install --user virtualenv
+
+#Linux/Mac
+python3 -m venv env  
+source env/bin/activate
+#Windows
+py -m venv env  
+# env\Scripts\activate.bat	
+.\env\Scripts\activate
+
+# Intall required packages using:
+pip install -r requirements.txt
+```
