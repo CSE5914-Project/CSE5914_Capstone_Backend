@@ -23,11 +23,15 @@ API
 - Reference:
   - https://docs.google.com/document/d/1W57Pf48E5z1Zg8dsoWrZd1FxkHIqCSrgStXAvqLGQYQ/edit#heading=h.jwaty07wsref
 ```bash
+.\venv\Scripts\activate
 #You need a Procfile to work with heroku, read more here https://devcenter.heroku.com/articles/procfile
 # <process type>: <command>
 web: gunicorn app:app	
 # 'web' is tye process type
 # 'gunicorn app:app' is the command, with format $ gunicorn [OPTIONS] [WSGI_APP] --> It say we will look for a python file, app.py, and run a variable called app
+
+# Generate the requirement fiel, if you haven't done so
+pip freeze > requirements.txt
 
 # Make a clean commit
 git add .
