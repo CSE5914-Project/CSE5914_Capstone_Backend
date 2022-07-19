@@ -55,12 +55,12 @@ flask run
 python3 -m pip install --user virtualenv
 
 #Linux/Mac
-python3 -m venv env  
-source env/bin/activate
+python3 -m venv venv  
+source venv/bin/activate
 #Windows
-py -m venv env  
+py -m venv venv  
 # env\Scripts\activate.bat	
-.\env\Scripts\activate
+.\venv\Scripts\activate
 
 # Intall required packages using:
 pip install -r requirements.txt
