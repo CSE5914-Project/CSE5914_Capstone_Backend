@@ -135,8 +135,9 @@ PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
-# STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
-STATIC_ROOT = os.path.join(PROJECT_ROOT, 'staticfiles')
+#    BASE_DIR: /tmp/build_0ea1c4f3/chatbot 
+#    PROJECT_ROOT:/tmp/build_0ea1c4f3/chatbot/chatbot 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'    
 
 # Extra places for collectstatic to find static files.
