@@ -12,11 +12,11 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 # from snippets.models import Snippet
 # from snippets.serializers import SnippetSerializer
 from django.http import JsonResponse
-import chatbot.assistant
-import chatbot.tmdb_assistant
-import chatbot.translator
-import chatbot.nlu
-import chatbot.ibm_nl_understanding
+import chatbot.assistant as assistant
+import chatbot.tmdb_assistant as tmdb_assistant
+import chatbot.translator as translator
+import chatbot.nlu  as nlu
+import chatbot.ibm_nl_understanding as ibm_nl_understanding
 import requests
 import json
 import os
