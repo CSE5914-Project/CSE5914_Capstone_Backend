@@ -10,6 +10,7 @@ asttokens @ file:///home/conda/feedstock_root/build_artifacts/asttokens_16189683
 astunparse==1.6.3
 async-timeout==3.0.1
 attrs==21.2.0
+autopep8 @ file:///home/conda/feedstock_root/build_artifacts/autopep8_1635267974115/work
 backcall @ file:///home/conda/feedstock_root/build_artifacts/backcall_1592338393461/work
 backports.functools-lru-cache @ file:///home/conda/feedstock_root/build_artifacts/backports.functools_lru_cache_1618230623929/work
 beautifulsoup4==4.9.3
@@ -137,11 +138,12 @@ pure-eval @ file:///home/conda/feedstock_root/build_artifacts/pure_eval_16428759
 pyasn1==0.4.8
 pyasn1-modules==0.2.8
 pycocotools==2.0
+pycodestyle @ file:///home/conda/feedstock_root/build_artifacts/pycodestyle_1633982426610/work
 pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1636257122734/work
 PyDictionary==2.0.1
 pydot==1.4.2
 Pygments==2.7.1
-PyJWT==1.7.1
+PyJWT @ file:///home/conda/feedstock_root/build_artifacts/pyjwt_1652398519695/work
 pykwalify==1.8.0
 pylint==2.2.2
 pymongo==3.10.1
@@ -213,7 +215,7 @@ textblob==0.15.3
 tf-estimator-nightly==2.8.0.dev2021122109
 threadpoolctl==3.1.0
 tifffile @ file:///home/conda/feedstock_root/build_artifacts/tifffile_1591280222285/work
-toml==0.10.1
+toml @ file:///home/conda/feedstock_root/build_artifacts/toml_1604308577558/work
 toolz @ file:///tmp/build/80754af9/toolz_1636545406491/work
 torch==1.11.0
 torchaudio==0.11.0
