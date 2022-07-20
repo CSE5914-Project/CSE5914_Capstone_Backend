@@ -1,1 +1,1 @@
-web: gunicorn chatbot.chatbot.wsgi:application
+web: python ./chatbot/manage.py runserver 0.0.0.0:5000

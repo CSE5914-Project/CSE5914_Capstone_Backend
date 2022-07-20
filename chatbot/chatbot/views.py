@@ -12,11 +12,11 @@ from rest_framework.renderers import JSONRenderer, TemplateHTMLRenderer
 # from snippets.models import Snippet
 # from snippets.serializers import SnippetSerializer
 from django.http import JsonResponse
-from . import assistant
-from . import tmdb_assistant
-from . import translator
-from . import nlu
-from . import ibm_nl_understanding
+import chatbot.assistant
+import chatbot.tmdb_assistant
+import chatbot.translator
+import chatbot.nlu
+import chatbot.ibm_nl_understanding
 import requests
 import json
 import os
@@ -26,6 +26,7 @@ from enum import Enum
 from langdetect import detect
 from textblob import TextBlob
 
+print("yes")
 # Set up IBM Chatbot API
 assistant = assistant.Assistant()
 # API For IBM translation

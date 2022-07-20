@@ -10,13 +10,15 @@ class NLUnderstand:
         API_KEY = 'gll0qvBJM9VnCJFEsTw6mt1sY6nJN_y7nqjT9Hwdr3My'
         authenticator = IAMAuthenticator(API_KEY)
         self.service = NaturalLanguageUnderstandingV1(
-            version='2020-11-11', authenticator=authenticator)
-        self.service.set_service_url(
-            'https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/2d2f051b-f683-4e06-b513-0c6bbf1341c1')
+                            version='2022-04-07',
+                            authenticator=authenticator
+                        )
+        self.service.set_service_url('https://api.us-south.natural-language-understanding.watson.cloud.ibm.com/instances/2d2f051b-f683-4e06-b513-0c6bbf1341c1')
 
     def analyze(self, input):
-        return self.service.analyze(text=input, features=Features(
-            entities=EntitiesOptions(), keywords=KeywordsOptions(), sentiment=SentimentOptions())).get_result()
+        return self.service.analyze(text=input, 
+                                    features=Features(entities=EntitiesOptions(emotion=True, sentiment=True), keywords=KeywordsOptions(emotion=True, sentiment=True), sentiment=SentimentOptions())
+                ).get_result()
 
     def get_keywords(self, input):
         """Gets keywords from input text.

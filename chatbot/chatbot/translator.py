@@ -43,6 +43,6 @@ api = API
 msg = translate(sentence_list, API, source_lang, target_lang)
 translation = [i['translation'] for i in json.loads(msg.text)['translations']]
 # print(msg.text)
-print('Translate {} to {}:\n'.format(source_lang,target_lang))
-for sent, translate in zip(sentence_list, translation):
-    print('Original: {}\nTranslate: {}\n'.format(sent,translate))
+print('Translate {} to {}:\n'.format(source_lang, target_lang))
+for sentence, translate in zip(sentence_list, translation):
+    print(f'Original: {sentence}\nTranslate: {translate}\n')
